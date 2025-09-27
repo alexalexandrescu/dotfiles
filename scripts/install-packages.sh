@@ -1,26 +1,20 @@
 #!/bin/bash
 
 # Cross-platform package installer
-# Reads from packages.yaml and installs based on current OS
+# Reads from packages.sh and installs based on current OS
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$(dirname "$SCRIPT_DIR")"
-PACKAGES_FILE="$DOTFILES_DIR/packages.yaml"
+PACKAGES_SH_FILE="$DOTFILES_DIR/scripts/packages.sh"
 
-# Check if yq is available for YAML parsing
-if ! command -v yq &> /dev/null; then
-    echo "Installing yq for YAML parsing..."
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        brew install yq
-    elif [[ "$OSTYPE" == "linux"* ]]; then
-        sudo apt install -y yq || {
-            # Fallback: install yq binary
-            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-            sudo chmod +x /usr/local/bin/yq
-        }
-    fi
+# Source the packages definitions
+if [[ -f "$PACKAGES_SH_FILE" ]]; then
+    source "$PACKAGES_SH_FILE"
+else
+    echo "❌ Error: packages.sh not found at $PACKAGES_SH_FILE"
+    exit 1
 fi
 
 # Detect OS
@@ -35,24 +29,23 @@ echo "🖥️  Detected OS: $OS"
 
 # Function to install packages for current OS
 install_category() {
-    local category="$1"
+    local category_name="$1"
     local install_optional="${2:-false}"
 
     echo ""
-    echo "📦 Installing $category packages..."
+    echo "📦 Installing $category_name packages..."
 
-    # Get package count
-    local package_count
-    package_count=$(yq eval ".${category}.packages | length" "$PACKAGES_FILE")
+    # Get the associative array name from the CATEGORY_MAP
+    local -n category_array="${CATEGORY_MAP[$category_name]}"
 
-    for ((i=0; i<package_count; i++)); do
-        local name package_macos package_ubuntu global_npm optional
+    if [[ -z "${category_array[*]}" ]]; then
+        echo "❌ Error: No packages defined for category '$category_name'."
+        return 1
+    fi
 
-        name=$(yq eval ".${category}.packages[$i].name" "$PACKAGES_FILE")
-        package_macos=$(yq eval ".${category}.packages[$i].macos" "$PACKAGES_FILE")
-        package_ubuntu=$(yq eval ".${category}.packages[$i].ubuntu" "$PACKAGES_FILE")
-        global_npm=$(yq eval ".${category}.packages[$i].global_npm" "$PACKAGES_FILE")
-        optional=$(yq eval ".${category}.packages[$i].optional" "$PACKAGES_FILE")
+    for pkg_key in "${!category_array[@]}"; do
+        local pkg_info="${category_array[$pkg_key]}"
+        IFS=';' read -r name package_macos package_ubuntu global_npm optional <<< "$pkg_info"
 
         # Skip optional packages unless requested
         if [[ "$optional" == "true" && "$install_optional" != "true" ]]; then
@@ -70,7 +63,7 @@ install_category() {
                 echo "    ✅ Already installed: $package_macos"
             fi
         elif [[ "$OS" == "ubuntu" && "$package_ubuntu" != "null" ]]; then
-            if ! dpkg -l | grep -q "^ii  $package_ubuntu "; then
+            if ! dpkg -l | grep -q "^ii  $package_ubuntu " &>/dev/null; then
                 sudo apt install -y "$package_ubuntu"
             else
                 echo "    ✅ Already installed: $package_ubuntu"
@@ -101,10 +94,6 @@ while [[ $# -gt 0 ]]; do
             INSTALL_OPTIONAL=true
             shift
             ;;
-        --category)
-            CATEGORIES+=("$2")
-            shift 2
-            ;;
         *)
             CATEGORIES+=("$1")
             shift
@@ -119,7 +108,7 @@ fi
 
 # Install each category
 for category in "${CATEGORIES[@]}"; do
-    if yq eval ".${category}" "$PACKAGES_FILE" >/dev/null 2>&1; then
+    if [[ -n "${CATEGORY_MAP[$category]}" ]]; then
         install_category "$category" "$INSTALL_OPTIONAL"
     else
         echo "❌ Unknown category: $category"
@@ -132,5 +121,5 @@ echo ""
 echo "💡 Usage examples:"
 echo "  $0                           # Install default categories"
 echo "  $0 --optional              # Install including optional packages"
-echo "  $0 --category typescript   # Install only TypeScript tools"
+echo "  $0 typescript              # Install only TypeScript tools"
 echo "  $0 development modern_cli  # Install specific categories"

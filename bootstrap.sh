@@ -53,6 +53,10 @@ if [[ "$MACHINE" == "Mac" ]]; then
         brew install git
     fi
 
+    # Install macOS packages via Brewfile
+    echo "Installing macOS packages via Brewfile..."
+    brew bundle --file="$DOTFILES_DIR/macos/Brewfile" || echo "⚠️  Brewfile installation failed. You can run 'brew bundle' manually later."
+
 elif [[ "$MACHINE" == "Linux" ]]; then
     # Update package lists
     sudo apt update
@@ -112,22 +116,16 @@ if [[ ! -d "$ZSH_CUSTOM/themes/powerlevel10k" ]]; then
     git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$ZSH_CUSTOM/themes/powerlevel10k"
 fi
 
-# Step 5: Run dotfiles installation
+# Step 5: Install development tools (NVM first)
 echo ""
-echo "🔗 Installing dotfiles..."
-cd "$DOTFILES_DIR"
-./install
-
-# Step 6: Install development tools
-echo ""
-echo "🛠️  Installing development tools..."
+echo "🛠️  Installing development tools (NVM first)..."
 
 # Install NVM and Node.js
 if [[ ! -d "$HOME/.nvm" ]]; then
     echo "Installing NVM..."
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 
-    # Source NVM
+    # Source NVM (temporarily for this script)
     export NVM_DIR="$HOME/.nvm"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
@@ -136,6 +134,17 @@ if [[ ! -d "$HOME/.nvm" ]]; then
     nvm use --lts
     nvm alias default lts/*
 fi
+
+# Step 6: Run dotfiles installation
+echo ""
+echo "🔗 Installing dotfiles..."
+cd "$DOTFILES_DIR"
+./install
+
+# Source the newly linked .zshrc to ensure subsequent commands see it
+echo ""
+echo "🔄 Sourcing ~/.zshrc..."
+source ~/.zshrc || echo "⚠️  Failed to source ~/.zshrc. Subsequent commands might be affected."
 
 # Install Bun
 if ! command -v bun &> /dev/null; then
@@ -154,6 +163,30 @@ npm install -g \
     nodemon \
     pm2
 
+# Install and set up pre-commit hooks
+echo ""
+echo "🎣 Installing pre-commit hooks..."
+if ! command -v pre-commit &> /dev/null; then
+    echo "Installing pre-commit..."
+    if [[ "$MACHINE" == "Mac" ]]; then
+        brew install pre-commit
+    elif [[ "$MACHINE" == "Linux" ]]; then
+        sudo apt install -y pre-commit || pip install pre-commit # Fallback to pip if apt fails
+    fi
+fi
+pre-commit install || echo "⚠️  Failed to install pre-commit hooks. You can run 'pre-commit install' manually later."
+
+# Link platform-specific zshrc.local
+echo ""
+echo "🔗 Linking platform-specific zshrc.local..."
+if [[ "$MACHINE" == "Mac" ]]; then
+    ln -sf "$DOTFILES_DIR/macos/.zshrc.local" "$HOME/.zshrc.local"
+    echo "Linked macOS ~/.zshrc.local"
+elif [[ "$MACHINE" == "Linux" ]]; then
+    ln -sf "$DOTFILES_DIR/ubuntu/.zshrc.local" "$HOME/.zshrc.local"
+    echo "Linked Ubuntu ~/.zshrc.local"
+fi
+
 # Step 7: Final setup
 echo ""
 echo "🎯 Final setup..."
@@ -169,8 +202,20 @@ fi
 if [[ -z "$(git config --global user.name)" ]]; then
     echo ""
     echo "📝 Git configuration:"
-    read -r -p "Enter your name: " git_name
-    read -r -p "Enter your email: " git_email
+
+    if [[ -n "$GIT_USER_NAME" ]]; then
+        git_name="$GIT_USER_NAME"
+        echo "Using Git user name from environment variable: $git_name"
+    else
+        read -r -p "Enter your name: " git_name
+    fi
+
+    if [[ -n "$GIT_USER_EMAIL" ]]; then
+        git_email="$GIT_USER_EMAIL"
+        echo "Using Git user email from environment variable: $git_email"
+    else
+        read -r -p "Enter your email: " git_email
+    fi
 
     git config --global user.name "$git_name"
     git config --global user.email "$git_email"

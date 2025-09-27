@@ -11,12 +11,11 @@ on:
 
 jobs:
   test-installation:
-    name: Test Installation
-    runs-on: ${{ matrix.os }}
+    name: Test Installation via Docker
+    runs-on: ubuntu-latest # Use Ubuntu as the Docker host
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        install-method: [bootstrap, dotbot, safe]
+        scenario: [fresh, safe, macos] # Corresponds to test-docker.sh scenarios
 
     steps:
     - name: Checkout repository
@@ -24,61 +23,30 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Set up environment
-      run: |
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          sudo apt-get update
-          sudo apt-get install -y curl wget git
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          # Homebrew is pre-installed on GitHub Actions macOS runners
-          brew update
-        fi
+    - name: Build Docker Image (if not already built)
+      run: ./test-docker.sh build
 
-    - name: Test Bootstrap Installation
-      if: matrix.install-method == 'bootstrap'
-      run: |
-        # Test bootstrap script without actually installing everything
-        bash bootstrap.sh --dry-run || echo "Bootstrap completed with warnings"
+    - name: Run Docker Test Scenario - ${{ matrix.scenario }}
+      run: ./test-docker.sh ${{ matrix.scenario }}
 
-    - name: Test Dotbot Installation
-      if: matrix.install-method == 'dotbot'
-      run: |
-        # Initialize dotbot submodule if needed
-        git submodule update --init --recursive
-        ./install
+    - name: Clean up Docker containers
+      if: always()
+      run: ./test-docker.sh clean
 
-    - name: Test Safe Installation
-      if: matrix.install-method == 'safe'
-      run: |
-        # Test safe installation in non-interactive mode
-        echo -e "y\ny\ny\ny\ny" | ./install-safe.sh
+  pre-commit:
+    name: Pre-commit Checks
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-    - name: Run Dotfiles Tests
-      run: |
-        # Run our comprehensive test suite
-        chmod +x test/test-dotfiles.sh
-        ./test/test-dotfiles.sh
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
 
-    - name: Test Package Installation
-      run: |
-        # Test package installation by category
-        ./scripts/install-packages.sh development --dry-run
-        ./scripts/install-packages.sh modern_cli --dry-run
+    - name: Install pre-commit
+      run: pip install pre-commit
 
-    - name: Validate Shell Configuration
-      run: |
-        # Test that shell configs load without errors
-        if [ -f ~/.zshrc ]; then
-          zsh -n ~/.zshrc || echo "Shell config validation failed"
-        fi
-
-    - name: Test Tool Availability
-      run: |
-        # Verify key tools are accessible
-        command -v git || echo "git not found"
-        command -v curl || echo "curl not found"
-
-        # Test aliases and functions
-        if [ -f ~/.aliases ]; then
-          zsh -c "source ~/.aliases && typeset -f create-ts-project" || echo "Function test failed"
-        fi
+    - name: Run pre-commit hooks
+      run: pre-commit run --all-files

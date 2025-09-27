@@ -19,18 +19,21 @@ RUN apt-get update && apt-get install -y \
     zsh \
     python3 \
     python3-pip \
+    python3-yaml \
     && rm -rf /var/lib/apt/lists/*
 
 # Create test user with sudo privileges
 RUN useradd -m -s /bin/zsh $USER && \
-    echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+    echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
+    chsh -s /bin/zsh $USER # Set zsh as default shell for testuser
 
 # Switch to test user
 USER $USER
 WORKDIR $HOME
 
 # Install Oh My Zsh (required for our dotfiles)
-RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+RUN git clone https://github.com/ohmyzsh/ohmyzsh.git $HOME/.oh-my-zsh && \
+    cp $HOME/.oh-my-zsh/templates/zshrc.zsh-template $HOME/.zshrc
 
 # Copy dotfiles to container
 COPY --chown=$USER:$USER . $HOME/dotfiles

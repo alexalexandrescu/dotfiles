@@ -128,12 +128,7 @@ link_configs_selective() {
         backup_and_link "$DOTFILES_DIR/shared/.dev-automations" "$HOME/.dev-automations" "dev automations"
         backup_and_link "$DOTFILES_DIR/shared/.env-detection" "$HOME/.env-detection" "environment detection"
 
-        # Platform-specific
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            backup_and_link "$DOTFILES_DIR/macos/.zshrc.local" "$HOME/.zshrc.local" "macOS shell config"
-        elif [[ "$OSTYPE" == "linux"* ]]; then
-            backup_and_link "$DOTFILES_DIR/ubuntu/.zshrc.local" "$HOME/.zshrc.local" "Ubuntu shell config"
-        fi
+        # Platform-specific zshrc.local linking will be handled outside of Dotbot
     fi
 
     # Git configuration
@@ -141,6 +136,27 @@ link_configs_selective() {
         backup_and_link "$DOTFILES_DIR/shared/.gitconfig" "$HOME/.gitconfig" "git configuration"
         backup_and_link "$DOTFILES_DIR/shared/.gitignore_global" "$HOME/.gitignore_global" "global gitignore"
         git config --global core.excludesfile ~/.gitignore_global
+
+        # Configure Git user name and email if not already set and environment variables are available
+        if [[ -z "$(git config --global user.name)" ]]; then
+            if [[ -n "$GIT_USER_NAME" ]]; then
+                git config --global user.name "$GIT_USER_NAME"
+                echo "  Using Git user name from environment variable: $GIT_USER_NAME"
+            else
+                read -r -p "  Enter your Git user name: " git_name
+                git config --global user.name "$git_name"
+            fi
+        fi
+
+        if [[ -z "$(git config --global user.email)" ]]; then
+            if [[ -n "$GIT_USER_EMAIL" ]]; then
+                git config --global user.email "$GIT_USER_EMAIL"
+                echo "  Using Git user email from environment variable: $GIT_USER_EMAIL"
+            else
+                read -r -p "  Enter your Git user email: " git_email
+                git config --global user.email "$git_email"
+            fi
+        fi
     fi
 
     # Development tools
@@ -173,8 +189,44 @@ main() {
     # Install packages
     install_packages_selective
 
+    # Install macOS packages via Brewfile if on Mac and dev tools were selected
+    if [[ "$OSTYPE" == "darwin"* && "$install_dev" =~ ^[Yy]$ ]]; then
+        echo "Installing macOS packages via Brewfile..."
+        brew bundle --file="$DOTFILES_DIR/macos/Brewfile" || echo "⚠️  Brewfile installation failed. You can run 'brew bundle' manually later."
+    fi
+
+    # Install and set up pre-commit hooks
+    echo ""
+    echo "🎣 Installing pre-commit hooks..."
+    # Detect OS for pre-commit installation
+    OS_TYPE="unknown"
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        OS_TYPE="macos"
+    elif [[ "$OSTYPE" == "linux"* ]]; then
+        OS_TYPE="linux"
+    fi
+
+    if ! command -v pre-commit &> /dev/null; then
+        echo "Installing pre-commit..."
+        if [[ "$OS_TYPE" == "macos" ]]; then
+            brew install pre-commit
+        elif [[ "$OS_TYPE" == "linux" ]]; then
+            sudo apt install -y pre-commit || pip install pre-commit # Fallback to pip if apt fails
+        fi
+    fi
+    pre-commit install || echo "⚠️  Failed to install pre-commit hooks. You can run 'pre-commit install' manually later."
+
     # Link configurations
     link_configs_selective
+
+    # Link platform-specific zshrc.local
+    echo ""
+    echo "🔗 Linking platform-specific zshrc.local..."
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        backup_and_link "$DOTFILES_DIR/macos/.zshrc.local" "$HOME/.zshrc.local" "macOS shell config"
+    elif [[ "$OSTYPE" == "linux"* ]]; then
+        backup_and_link "$DOTFILES_DIR/ubuntu/.zshrc.local" "$HOME/.zshrc.local" "Ubuntu shell config"
+    fi
 
     echo ""
     echo -e "${GREEN}✅ Safe installation complete!${NC}"
@@ -192,8 +244,9 @@ main() {
 
     echo "  3. Test your setup: $DOTFILES_DIR/test/test-dotfiles.sh"
     echo ""
-    echo "💡 Your original configs are backed up with .backup.TIMESTAMP extensions"
-    echo "💡 You can always run this script again to install more components"
+    echo "💡 Your original configurations have been backed up to: $backup_dir"
+    echo "   You can restore them manually by copying files from this directory."
+    echo "💡 You can always run this script again to install more components or update existing ones."
 }
 
 # Run main function
