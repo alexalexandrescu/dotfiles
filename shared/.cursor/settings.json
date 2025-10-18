@@ -1,0 +1,81 @@
+{
+  // Inherit from base VSCode settings
+  "editor.fontSize": 14,
+  "editor.fontFamily": "JetBrains Mono, Fira Code, Monaco, 'Courier New', monospace",
+  "editor.fontLigatures": true,
+  "editor.lineHeight": 1.5,
+  
+  // Cursor-specific AI settings
+  "cursor.ai.enabled": true,
+  "cursor.ai.model": "claude-3.5-sonnet",
+  "cursor.ai.suggestions.enabled": true,
+  "cursor.ai.chat.enabled": true,
+  "cursor.ai.autoComplete.enabled": true,
+  "cursor.ai.codeActions.enabled": true,
+  "cursor.ai.contextLength": "long",
+  "cursor.ai.includeFolderStructure": true,
+  "cursor.ai.respectGitignore": true,
+  
+  // Enhanced code completion
+  "cursor.ai.completions.triggerMode": "automatic",
+  "cursor.ai.completions.multiLine": true,
+  "cursor.ai.completions.includeContext": true,
+  
+  // TypeScript optimizations for AI
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  
+  // Cursor chat preferences
+  "cursor.chat.defaultModel": "claude-3.5-sonnet",
+  "cursor.chat.enableCodeContext": true,
+  "cursor.chat.enableFileContext": true,
+  
+  // Privacy and data settings
+  "cursor.privacy.anonymizeData": true,
+  "cursor.privacy.enableTelemetry": false,
+  "cursor.privacy.crashReports": false,
+  
+  // Performance settings for AI
+  "cursor.ai.completions.debounceMs": 150,
+  "cursor.ai.completions.maxSuggestions": 3,
+  "cursor.ai.chat.streaming": true,
+  
+  // File exclusions for AI context
+  "cursor.ai.excludePatterns": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/.git/**",
+    "**/coverage/**",
+    "**/.next/**",
+    "**/.nuxt/**",
+    "**/vendor/**",
+    "**/*.min.js",
+    "**/*.bundle.js"
+  ],
+  
+  // Language-specific AI settings
+  "cursor.ai.languageSettings": {
+    "typescript": {
+      "enableSuggestions": true,
+      "enableChat": true,
+      "contextLines": 50
+    },
+    "javascript": {
+      "enableSuggestions": true,
+      "enableChat": true,
+      "contextLines": 50
+    },
+    "python": {
+      "enableSuggestions": true,
+      "enableChat": true,
+      "contextLines": 30
+    },
+    "markdown": {
+      "enableSuggestions": false,
+      "enableChat": true,
+      "contextLines": 20
+    }
+  }
+}

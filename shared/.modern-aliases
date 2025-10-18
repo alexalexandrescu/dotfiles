@@ -1,38 +1,119 @@
-# Modern CLI Tool Enhancements
+# Modern CLI Tool Enhancements with Performance Optimization
 # Load after package installations to override defaults with better tools
 
-# Modern CLI replacements (conditional aliases)
-if command -v bat &> /dev/null; then
+# Performance: Cache command existence checks
+if [[ -z "${_MODERN_CLI_CACHE_LOADED:-}" ]]; then
+    export _MODERN_CLI_CACHE_LOADED=1
+    export _HAS_BAT=$(command -v bat &>/dev/null && echo "1" || echo "0")
+    export _HAS_EZA=$(command -v eza &>/dev/null && echo "1" || echo "0")
+    export _HAS_EXA=$(command -v exa &>/dev/null && echo "1" || echo "0")
+    export _HAS_FD=$(command -v fd &>/dev/null && echo "1" || echo "0")
+    export _HAS_RG=$(command -v rg &>/dev/null && echo "1" || echo "0")
+    export _HAS_ZOXIDE=$(command -v zoxide &>/dev/null && echo "1" || echo "0")
+fi
+
+# Bat (cat replacement) with enhanced configuration
+if [[ "$_HAS_BAT" == "1" ]]; then
     alias cat='bat'
     alias catp='bat --style=plain'  # Plain cat when needed
-    alias bathelp='bat --help'
+    alias catl='bat --style=numbers'  # With line numbers
+    alias catpg='bat --paging=always'  # Force paging
+    
+    # Set bat theme based on terminal background
+    if [[ -n "${BAT_THEME:-}" ]]; then
+        export BAT_THEME
+    elif [[ "${TERM_PROGRAM:-}" == "Apple_Terminal" ]] || [[ "${COLORTERM:-}" == "truecolor" ]]; then
+        export BAT_THEME="TwoDark"
+    else
+        export BAT_THEME="ansi"
+    fi
+    
+    # Enhanced bat configuration
+    export BAT_STYLE="numbers,changes,header"
+    export BAT_PAGER="less -RF"
 fi
 
-if command -v exa &> /dev/null; then
-    alias ls='exa --icons'
-    alias ll='exa -la --icons --git'
-    alias tree='exa --tree --icons'
-    alias ltree='exa --tree --icons -L 2'
+# Eza/Exa (ls replacement) with intelligent fallback
+if [[ "$_HAS_EZA" == "1" ]]; then
+    alias ls='eza --icons --group-directories-first'
+    alias ll='eza -la --icons --git --group-directories-first --time-style=relative'
+    alias tree='eza --tree --icons --group-directories-first'
+    alias ltree='eza --tree --icons --level=2 --group-directories-first'
+    alias llt='eza -la --icons --git --sort=modified --reverse'
+elif [[ "$_HAS_EXA" == "1" ]]; then
+    alias ls='exa --icons --group-directories-first'
+    alias ll='exa -la --icons --git --group-directories-first'
+    alias tree='exa --tree --icons --group-directories-first'
+    alias ltree='exa --tree --icons -L 2 --group-directories-first'
+    alias llt='exa -la --icons --git --sort=modified --reverse'
 fi
 
-if command -v fd &> /dev/null; then
+# Fd (find replacement) with enhanced defaults
+if [[ "$_HAS_FD" == "1" ]]; then
     alias find='fd'
     alias fdf='fd --type f'  # files only
     alias fdd='fd --type d'  # directories only
+    alias fdh='fd --hidden'  # include hidden files
+    alias fde='fd --extension'  # find by extension
+    alias fdn='fd --no-ignore'  # don't respect gitignore
+    
+    # Smart find function with context
+    ff() {
+        local pattern="${1:-}"
+        local path="${2:-.}"
+        if [[ -z "$pattern" ]]; then
+            echo "Usage: ff <pattern> [path]"
+            return 1
+        fi
+        fd "$pattern" "$path" --type f --color=always | head -20
+    }
 fi
 
-if command -v rg &> /dev/null; then
+# Ripgrep (grep replacement) with smart defaults
+if [[ "$_HAS_RG" == "1" ]]; then
     alias grep='rg'
     alias rgi='rg -i'  # case insensitive
     alias rgf='rg --files-with-matches'  # just filenames
+    alias rgl='rg --line-number'  # show line numbers
+    alias rgc='rg --count'  # count matches
+    alias rga='rg --hidden'  # include hidden files
+    
+    # Smart search function with context
+    search() {
+        local pattern="${1:-}"
+        local path="${2:-.}"
+        if [[ -z "$pattern" ]]; then
+            echo "Usage: search <pattern> [path]"
+            return 1
+        fi
+        rg "$pattern" "$path" --smart-case --color=always --line-number --context=2
+    }
+    
+    # Search in specific file types
+    rgt() { rg "$1" --type "$2" "${3:-.}"; }  # search by type
+    rgjs() { rg "$1" --type js --type ts "${2:-.}"; }  # JavaScript/TypeScript
+    rgpy() { rg "$1" --type py "${2:-.}"; }  # Python
 fi
 
-# Zoxide integration (smart cd replacement)
-if command -v zoxide &> /dev/null; then
-    eval "$(zoxide init zsh)"
+# Zoxide integration (smart cd replacement) with lazy loading
+if [[ "$_HAS_ZOXIDE" == "1" ]]; then
+    # Only initialize zoxide when first used for better shell startup
+    _zoxide_init() {
+        if [[ -z "${_ZOXIDE_INITIALIZED:-}" ]]; then
+            eval "$(zoxide init zsh)"
+            export _ZOXIDE_INITIALIZED=1
+        fi
+    }
+    
+    z() { _zoxide_init && z "$@"; }
+    zi() { _zoxide_init && zi "$@"; }
+    
+    # Traditional aliases for those who prefer them
     alias cd='z'
     alias cdi='zi'  # interactive selection
     alias zz='z -'  # go back
+    alias za='zoxide add'  # manually add directory
+    alias zq='zoxide query'  # query database
 fi
 
 # Starship prompt (if installed)
@@ -45,22 +126,79 @@ if command -v direnv &> /dev/null; then
     eval "$(direnv hook zsh)"
 fi
 
-# FZF enhancements
-if command -v fzf &> /dev/null; then
-    # Better file preview with bat
-    if command -v bat &> /dev/null; then
-        export FZF_DEFAULT_OPTS="--preview 'bat --color=always --style=numbers --line-range=:500 {}'"
+# FZF enhancements with intelligent integration
+if command -v fzf &>/dev/null; then
+    export _HAS_FZF=1
+    
+    # Enhanced default options with better preview
+    local fzf_preview_cmd="cat {}"
+    if [[ "$_HAS_BAT" == "1" ]]; then
+        fzf_preview_cmd="bat --color=always --style=numbers --line-range=:500 {}"
     fi
-
-    # Use fd for fzf if available
-    if command -v fd &> /dev/null; then
-        export FZF_DEFAULT_COMMAND='fd --type f'
+    
+    export FZF_DEFAULT_OPTS="\
+        --height=40% \
+        --layout=reverse \
+        --border \
+        --inline-info \
+        --preview='$fzf_preview_cmd' \
+        --preview-window='right:60%:wrap' \
+        --bind='ctrl-u:preview-page-up,ctrl-d:preview-page-down' \
+        --bind='ctrl-a:select-all,ctrl-x:deselect-all' \
+        --color='hl:148,hl+:154,pointer:032,marker:010,bg+:237,gutter:008'"
+    
+    # Use fd for fzf if available, with better defaults
+    if [[ "$_HAS_FD" == "1" ]]; then
+        export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git --exclude node_modules'
         export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-        export FZF_ALT_C_COMMAND='fd --type d'
+        export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git --exclude node_modules'
+    else
+        export FZF_DEFAULT_COMMAND='find . -type f -not -path "*/\.git/*" -not -path "*/node_modules/*"'
+        export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+        export FZF_ALT_C_COMMAND='find . -type d -not -path "*/\.git/*" -not -path "*/node_modules/*"'
     fi
-
-    # Key bindings
-    [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+    
+    # Enhanced functions using fzf
+    # Smart file opener
+    fo() {
+        local file
+        file=$(fzf --query="$1" --select-1 --exit-0)
+        [ -n "$file" ] && ${EDITOR:-vim} "$file"
+    }
+    
+    # Directory jumper
+    fcd() {
+        local dir
+        dir=$(fd --type d | fzf --query="$1" --select-1 --exit-0) && cd "$dir"
+    }
+    
+    # Process killer
+    fkill() {
+        local pid
+        pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
+        [ -n "$pid" ] && echo "$pid" | xargs kill -${1:-9}
+    }
+    
+    # Git branch switcher
+    fgb() {
+        local branch
+        branch=$(git branch --all | grep -v HEAD | sed 's/^..//g' | sed 's#remotes/[^/]*/##g' | sort -u | fzf) && git checkout "$branch"
+    }
+    
+    # Key bindings - load lazily for better startup performance
+    _fzf_key_bindings_init() {
+        if [[ -z "${_FZF_BINDINGS_LOADED:-}" ]]; then
+            [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+            [ -f "$(brew --prefix)/opt/fzf/shell/key-bindings.zsh" ] && source "$(brew --prefix)/opt/fzf/shell/key-bindings.zsh" 2>/dev/null
+            [ -f "$(brew --prefix)/opt/fzf/shell/completion.zsh" ] && source "$(brew --prefix)/opt/fzf/shell/completion.zsh" 2>/dev/null
+            export _FZF_BINDINGS_LOADED=1
+        fi
+    }
+    
+    # Load key bindings on first fzf command
+    alias fzf='_fzf_key_bindings_init && fzf'
+else
+    export _HAS_FZF=0
 fi
 
 # Git extras shortcuts (if installed)

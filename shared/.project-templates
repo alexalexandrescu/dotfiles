@@ -1,0 +1,734 @@
+# Enhanced Project Templates for Modern Development
+# Comprehensive collection of project scaffolding functions
+
+# Utility function to detect and use the best package manager
+detect_package_manager() {
+    if command -v bun &> /dev/null && [[ ! -f "package-lock.json" && ! -f "yarn.lock" && ! -f "pnpm-lock.yaml" ]]; then
+        echo "bun"
+    elif command -v pnpm &> /dev/null && [[ -f "pnpm-lock.yaml" || ! -f "package-lock.json" && ! -f "yarn.lock" ]]; then
+        echo "pnpm"
+    elif command -v yarn &> /dev/null && [[ -f "yarn.lock" || ! -f "package-lock.json" ]]; then
+        echo "yarn"
+    else
+        echo "npm"
+    fi
+}
+
+# Common package.json scripts setup
+setup_common_scripts() {
+    local pm="$1"
+    local project_type="$2"
+    
+    case "$pm" in
+        "bun")
+            cat >> package.json << 'EOF'
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build ./src/index.ts --outdir ./dist --target node",
+    "start": "node dist/index.js",
+    "test": "bun test",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+EOF
+            ;;
+        *)
+            cat >> package.json << 'EOF'
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+EOF
+            ;;
+    esac
+}
+
+# Frontend Project Templates
+
+create-react-project() {
+    local name="$1"
+    local pm=$(detect_package_manager)
+    
+    if command -v bun &> /dev/null && [[ "$pm" == "bun" ]]; then
+        bun create react-app . --template typescript
+    else
+        npx create-react-app . --template typescript
+        
+        # Add additional useful dependencies
+        $pm install -D @types/jest @testing-library/react @testing-library/jest-dom @testing-library/user-event
+        $pm install tailwindcss @types/node
+    fi
+    
+    # Add custom scripts
+    npm pkg set scripts.analyze="npx webpack-bundle-analyzer build/static/js/*.js"
+    npm pkg set scripts.eject="react-scripts eject"
+    
+    echo "✅ React TypeScript project created"
+    echo "💡 Next steps: $pm start"
+}
+
+create-vue-project() {
+    local name="$1"
+    local pm=$(detect_package_manager)
+    
+    if command -v vue &> /dev/null; then
+        vue create . --preset default --packageManager $pm --router --vuex --typescript
+    else
+        npx @vue/cli create . --preset default --packageManager $pm --router --vuex --typescript
+    fi
+    
+    echo "✅ Vue.js TypeScript project created"
+    echo "💡 Next steps: $pm run serve"
+}
+
+create-svelte-project() {
+    local name="$1"
+    local pm=$(detect_package_manager)
+    
+    npx create-svelte-app . --template typescript
+    $pm install
+    
+    # Add additional dependencies
+    $pm install -D @tsconfig/svelte typescript svelte-check svelte-preprocess
+    
+    echo "✅ Svelte TypeScript project created"
+    echo "💡 Next steps: $pm run dev"
+}
+
+create-angular-project() {
+    local name="$1"
+    
+    if command -v ng &> /dev/null; then
+        ng new . --routing --style=scss --package-manager=$(detect_package_manager)
+    else
+        npx @angular/cli new . --routing --style=scss --package-manager=$(detect_package_manager)
+    fi
+    
+    echo "✅ Angular project created"
+    echo "💡 Next steps: ng serve"
+}
+
+create-nextjs-project() {
+    local name="$1"
+    local pm=$(detect_package_manager)
+    
+    npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
+    
+    # Add additional useful dependencies
+    $pm install -D @types/node prettier
+    
+    # Add custom configuration
+    cat > next.config.js << 'EOF'
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    appDir: true,
+  },
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
+}
+
+module.exports = nextConfig
+EOF
+    
+    echo "✅ Next.js 13+ TypeScript project created"
+    echo "💡 Next steps: $pm run dev"
+}
+
+create-nuxt-project() {
+    local name="$1"
+    local pm=$(detect_package_manager)
+    
+    npx nuxi@latest init .
+    $pm install
+    
+    # Add TypeScript support
+    $pm install -D typescript @nuxt/typescript-build
+    
+    echo "✅ Nuxt.js TypeScript project created"
+    echo "💡 Next steps: $pm run dev"
+}
+
+create-astro-project() {
+    local name="$1"
+    local pm=$(detect_package_manager)
+    
+    npx create-astro@latest . --template minimal --typescript --git --install --package-manager $pm
+    
+    echo "✅ Astro project created"
+    echo "💡 Next steps: $pm run dev"
+}
+
+# Backend Project Templates
+
+create-fastify-ts-project() {
+    local name="$1"
+    local pm=$(detect_package_manager)
+    
+    # Initialize package.json
+    $pm init -y
+    
+    # Install dependencies
+    $pm install fastify @fastify/cors @fastify/helmet @fastify/rate-limit
+    $pm install -D typescript @types/node tsx nodemon eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin prettier
+    
+    # Create project structure
+    mkdir -p src/{routes,plugins,types} tests
+    
+    # Create main server file
+    cat > src/server.ts << 'EOF'
+import fastify from 'fastify';
+
+const server = fastify({
+  logger: {
+    level: 'info',
+    prettyPrint: process.env.NODE_ENV === 'development'
+  }
+});
+
+// Register plugins
+server.register(import('@fastify/cors'), {
+  origin: true,
+});
+
+server.register(import('@fastify/helmet'));
+
+server.register(import('@fastify/rate-limit'), {
+  max: 100,
+  timeWindow: '1 minute'
+});
+
+// Routes
+server.get('/', async (request, reply) => {
+  return { message: 'Fastify TypeScript API 🚀', timestamp: new Date().toISOString() };
+});
+
+server.get('/health', async (request, reply) => {
+  return { status: 'OK', uptime: process.uptime() };
+});
+
+const start = async () => {
+  try {
+    const port = Number(process.env.PORT) || 3000;
+    await server.listen({ port, host: '0.0.0.0' });
+    server.log.info(`Server running on port ${port}`);
+  } catch (err) {
+    server.log.error(err);
+    process.exit(1);
+  }
+};
+
+start();
+EOF
+    
+    # Create TypeScript config
+    cat > tsconfig.json << 'EOF'
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "removeComments": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "tests"]
+}
+EOF
+    
+    # Update package.json with scripts
+    setup_common_scripts "$pm" "fastify"
+    npm pkg set scripts.dev="tsx watch src/server.ts"
+    npm pkg set scripts.start="node dist/server.js"
+    
+    echo "✅ Fastify TypeScript API created"
+    echo "💡 Next steps: $pm run dev"
+}
+
+create-nest-project() {
+    local name="$1"
+    
+    if command -v nest &> /dev/null; then
+        nest new . --package-manager $(detect_package_manager)
+    else
+        npx @nestjs/cli new . --package-manager $(detect_package_manager)
+    fi
+    
+    echo "✅ NestJS project created"
+    echo "💡 Next steps: npm run start:dev"
+}
+
+create-deno-project() {
+    local name="$1"
+    
+    # Create deno.json
+    cat > deno.json << 'EOF'
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "lib": ["deno.window"],
+    "strict": true
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  },
+  "fmt": {
+    "files": {
+      "include": ["src/", "tests/"]
+    },
+    "options": {
+      "useTabs": false,
+      "lineWidth": 120,
+      "indentWidth": 2,
+      "singleQuote": true
+    }
+  },
+  "tasks": {
+    "dev": "deno run --allow-net --allow-read --allow-env --watch src/main.ts",
+    "start": "deno run --allow-net --allow-read --allow-env src/main.ts",
+    "test": "deno test --allow-all tests/",
+    "lint": "deno lint",
+    "fmt": "deno fmt"
+  }
+}
+EOF
+    
+    # Create project structure
+    mkdir -p src tests
+    
+    # Create main server file
+    cat > src/main.ts << 'EOF'
+import { Application, Router } from "https://deno.land/x/oak@v12.6.1/mod.ts";
+
+const router = new Router();
+
+router.get("/", (ctx) => {
+  ctx.response.body = { 
+    message: "Deno TypeScript API 🦕", 
+    timestamp: new Date().toISOString() 
+  };
+});
+
+router.get("/health", (ctx) => {
+  ctx.response.body = { 
+    status: "OK", 
+    uptime: Deno.uptime() 
+  };
+});
+
+const app = new Application();
+
+app.use(router.routes());
+app.use(router.allowedMethods());
+
+const port = Number(Deno.env.get("PORT")) || 3000;
+
+console.log(`🚀 Server running on port ${port}`);
+await app.listen({ port });
+EOF
+    
+    # Create test file
+    cat > tests/main_test.ts << 'EOF'
+import { assertEquals } from "https://deno.land/std@0.203.0/testing/asserts.ts";
+
+Deno.test("basic test", () => {
+  assertEquals(1 + 1, 2);
+});
+EOF
+    
+    echo "✅ Deno TypeScript project created"
+    echo "💡 Next steps: deno task dev"
+}
+
+create-bun-server-project() {
+    local name="$1"
+    
+    bun init -y
+    bun install
+    
+    # Create project structure
+    mkdir -p src/{routes,middleware} tests
+    
+    # Create main server file using Bun's built-in server
+    cat > src/server.ts << 'EOF'
+import { serve } from "bun";
+
+const server = serve({
+  port: Number(process.env.PORT) || 3000,
+  async fetch(req) {
+    const url = new URL(req.url);
+    
+    if (url.pathname === "/") {
+      return Response.json({
+        message: "Bun TypeScript API ⚡",
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    if (url.pathname === "/health") {
+      return Response.json({
+        status: "OK",
+        uptime: process.uptime()
+      });
+    }
+    
+    return new Response("Not Found", { status: 404 });
+  },
+});
+
+console.log(`🚀 Server running on port ${server.port}`);
+EOF
+    
+    # Update package.json with Bun-specific scripts
+    npm pkg set scripts.dev="bun --watch src/server.ts"
+    npm pkg set scripts.start="bun src/server.ts"
+    npm pkg set scripts.test="bun test"
+    npm pkg set scripts.build="echo 'No build needed for Bun'"
+    
+    echo "✅ Bun TypeScript server created"
+    echo "💡 Next steps: bun run dev"
+}
+
+# Fullstack Project Templates
+
+create-t3-project() {
+    local name="$1"
+    
+    npx create-t3-app@latest . --nextjs --typescript --tailwind --trpc --prisma --nextAuth
+    
+    echo "✅ T3 Stack project created (Next.js + TypeScript + Tailwind + tRPC + Prisma + NextAuth)"
+    echo "💡 Next steps: npm run dev"
+}
+
+create-remix-project() {
+    local name="$1"
+    local pm=$(detect_package_manager)
+    
+    npx create-remix@latest . --template typescript --package-manager $pm
+    
+    echo "✅ Remix TypeScript project created"
+    echo "💡 Next steps: $pm run dev"
+}
+
+# Mobile & Desktop Project Templates
+
+create-react-native-project() {
+    local name="$1"
+    
+    npx react-native init "$name" --template react-native-template-typescript
+    
+    echo "✅ React Native TypeScript project created"
+    echo "💡 Next steps: cd $name && npx react-native run-ios"
+}
+
+create-expo-project() {
+    local name="$1"
+    
+    npx create-expo-app . --template typescript
+    
+    echo "✅ Expo TypeScript project created"
+    echo "💡 Next steps: npx expo start"
+}
+
+create-electron-project() {
+    local name="$1"
+    local pm=$(detect_package_manager)
+    
+    $pm init -y
+    $pm install -D electron @types/node typescript tsx
+    $pm install electron-is-dev
+    
+    mkdir -p src public
+    
+    # Create main electron file
+    cat > src/main.ts << 'EOF'
+import { app, BrowserWindow } from 'electron';
+import * as path from 'path';
+import isDev from 'electron-is-dev';
+
+let mainWindow: BrowserWindow;
+
+function createWindow(): void {
+  mainWindow = new BrowserWindow({
+    height: 800,
+    width: 1200,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  });
+
+  mainWindow.loadURL(
+    isDev
+      ? 'http://localhost:3000'
+      : `file://${path.join(__dirname, '../public/index.html')}`
+  );
+
+  if (isDev) {
+    mainWindow.webContents.openDevTools();
+  }
+}
+
+app.on('ready', createWindow);
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
+
+app.on('activate', () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
+});
+EOF
+    
+    # Create basic HTML
+    cat > public/index.html << 'EOF'
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Electron TypeScript App</title>
+</head>
+<body>
+    <h1>🚀 Electron + TypeScript</h1>
+    <p>Your app is running!</p>
+</body>
+</html>
+EOF
+    
+    npm pkg set main="dist/main.js"
+    npm pkg set scripts.build="tsc"
+    npm pkg set scripts.start="electron ."
+    npm pkg set scripts.dev="tsx src/main.ts"
+    
+    echo "✅ Electron TypeScript project created"
+    echo "💡 Next steps: $pm run build && $pm start"
+}
+
+create-tauri-project() {
+    local name="$1"
+    
+    if command -v cargo &> /dev/null; then
+        cargo install create-tauri-app
+        cargo create-tauri-app --app-name "$name" --window-title "$name" --dist-dir "../dist" --dev-path "http://localhost:3000"
+    else
+        echo "❌ Cargo (Rust) is required for Tauri projects"
+        return 1
+    fi
+    
+    echo "✅ Tauri project created"
+    echo "💡 Next steps: cargo tauri dev"
+}
+
+# Development Tools Project Templates
+
+create-vite-project() {
+    local name="$1"
+    local pm=$(detect_package_manager)
+    
+    if command -v bun &> /dev/null && [[ "$pm" == "bun" ]]; then
+        bun create vite . --template vanilla-ts
+    else
+        npm create vite@latest . -- --template vanilla-ts
+    fi
+    
+    $pm install
+    
+    echo "✅ Vite TypeScript project created"
+    echo "💡 Next steps: $pm run dev"
+}
+
+create-playwright-project() {
+    local name="$1"
+    local pm=$(detect_package_manager)
+    
+    $pm init -y
+    $pm install -D @playwright/test typescript
+    
+    npx playwright install
+    
+    # Create playwright config
+    cat > playwright.config.ts << 'EOF'
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: 'html',
+  use: {
+    baseURL: 'http://127.0.0.1:3000',
+    trace: 'on-first-retry',
+  },
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
+  ],
+  webServer: {
+    command: 'npm run start',
+    url: 'http://127.0.0.1:3000',
+    reuseExistingServer: !process.env.CI,
+  },
+});
+EOF
+    
+    mkdir tests
+    cat > tests/example.spec.ts << 'EOF'
+import { test, expect } from '@playwright/test';
+
+test('has title', async ({ page }) => {
+  await page.goto('/');
+  await expect(page).toHaveTitle(/Example/);
+});
+EOF
+    
+    npm pkg set scripts.test="playwright test"
+    npm pkg set scripts."test:ui"="playwright test --ui"
+    npm pkg set scripts."test:report"="playwright show-report"
+    
+    echo "✅ Playwright testing project created"
+    echo "💡 Next steps: $pm test"
+}
+
+create-storybook-project() {
+    local name="$1"
+    local pm=$(detect_package_manager)
+    
+    $pm init -y
+    $pm install -D @storybook/cli @storybook/react @storybook/addon-essentials
+    
+    npx storybook init
+    
+    echo "✅ Storybook project created"
+    echo "💡 Next steps: $pm run storybook"
+}
+
+create-node-package() {
+    local name="$1"
+    local pm=$(detect_package_manager)
+    
+    $pm init -y
+    $pm install -D typescript @types/node tsx jest @types/jest ts-jest eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin prettier
+    
+    # Create package structure
+    mkdir -p src tests docs
+    
+    # Create main library file
+    cat > src/index.ts << 'EOF'
+/**
+ * A sample TypeScript library
+ */
+
+export function greet(name: string): string {
+  return `Hello, ${name}!`;
+}
+
+export function add(a: number, b: number): number {
+  return a + b;
+}
+
+export default {
+  greet,
+  add,
+};
+EOF
+    
+    # Create test file
+    cat > tests/index.test.ts << 'EOF'
+import { greet, add } from '../src/index';
+
+describe('Library functions', () => {
+  test('greet function', () => {
+    expect(greet('World')).toBe('Hello, World!');
+  });
+
+  test('add function', () => {
+    expect(add(2, 3)).toBe(5);
+  });
+});
+EOF
+    
+    # Create comprehensive package.json for library
+    npm pkg set main="dist/index.js"
+    npm pkg set types="dist/index.d.ts"
+    npm pkg set files='["dist/**/*"]'
+    npm pkg set scripts.build="tsc"
+    npm pkg set scripts.test="jest"
+    npm pkg set scripts.test:watch="jest --watch"
+    npm pkg set scripts.test:coverage="jest --coverage"
+    npm pkg set scripts.lint="eslint src/**/*.ts"
+    npm pkg set scripts.format="prettier --write src/**/*.ts"
+    npm pkg set scripts.prepublishOnly="npm run build"
+    
+    # Create enhanced tsconfig for library
+    cat > tsconfig.json << 'EOF'
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "removeComments": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "tests"]
+}
+EOF
+    
+    echo "✅ Node.js library package created"
+    echo "💡 Next steps: $pm run build && $pm test"
+}

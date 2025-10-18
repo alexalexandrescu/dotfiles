@@ -20,16 +20,21 @@ install-safe:
     @echo "🛡️ Running safe installation..."
     ./install-safe.sh
 
-# Install specific package categories
+# Install specific package categories using new YAML installer
 # Example: just install-packages modern_cli typescript
 install-packages *categories:
     @echo "📦 Installing packages: $*"
-    ./scripts/install-packages.sh $*
+    ./scripts/install-packages-yaml.sh $*
 
 # Install optional packages
 install-optional-packages:
     @echo "📦 Installing optional packages..."
-    ./scripts/install-packages.sh --optional
+    ./scripts/install-packages-yaml.sh --optional
+
+# Preview package installation (dry run)
+preview-packages *categories:
+    @echo "👀 Previewing package installation: $*"
+    ./scripts/install-packages-yaml.sh --dry-run $*
 
 # Run tests
 test:
