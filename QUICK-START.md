@@ -8,14 +8,14 @@ On a fresh machine, you don't need git configured. Just download and run.
 
 ```bash
 # macOS or Linux
-curl -L https://github.com/alexalexandrescu/dotfiles/releases/latest/download/install.sh -o install.sh
+curl -L <https://github.com/alexalexandrescu/dotfiles/releases/latest/download/install.sh> -o install.sh
 chmod +x install.sh
 ./install.sh
 ```
 
 Or one-liner:
 ```bash
-curl -L https://github.com/alexalexandrescu/dotfiles/releases/latest/download/install.sh | bash
+curl -L <https://github.com/alexalexandrescu/dotfiles/releases/latest/download/install.sh> | bash
 ```
 
 ## Step 2: Bootstrap Your Machine
@@ -45,13 +45,13 @@ source ~/.zshrc
 If the install script doesn't work, download manually:
 
 ### 1. Go to Releases
-https://github.com/alexalexandrescu/dotfiles/releases/latest
+<https://github.com/alexalexandrescu/dotfiles/releases/latest>
 
 ### 2. Download for Your Platform
 
 **macOS Apple Silicon (M1/M2):**
 ```bash
-curl -L -o dotfiles.zip https://github.com/alexalexandrescu/dotfiles/releases/latest/download/dotfiles-macos-arm64.zip
+curl -L -o dotfiles.zip <https://github.com/alexalexandrescu/dotfiles/releases/latest/download/dotfiles-macos-arm64.zip>
 unzip dotfiles.zip
 chmod +x dotfiles
 ./dotfiles bootstrap
@@ -59,7 +59,7 @@ chmod +x dotfiles
 
 **macOS Intel:**
 ```bash
-curl -L -o dotfiles.zip https://github.com/alexalexandrescu/dotfiles/releases/latest/download/dotfiles-macos-x64.zip
+curl -L -o dotfiles.zip <https://github.com/alexalexandrescu/dotfiles/releases/latest/download/dotfiles-macos-x64.zip>
 unzip dotfiles.zip
 chmod +x dotfiles
 ./dotfiles bootstrap
@@ -67,7 +67,7 @@ chmod +x dotfiles
 
 **Linux x64:**
 ```bash
-curl -L -o dotfiles.tar.gz https://github.com/alexalexandrescu/dotfiles/releases/latest/download/dotfiles-linux-x64.tar.gz
+curl -L -o dotfiles.tar.gz <https://github.com/alexalexandrescu/dotfiles/releases/latest/download/dotfiles-linux-x64.tar.gz>
 tar -xzf dotfiles.tar.gz
 chmod +x dotfiles
 ./dotfiles bootstrap
@@ -75,7 +75,7 @@ chmod +x dotfiles
 
 **Linux ARM64:**
 ```bash
-curl -L -o dotfiles.tar.gz https://github.com/alexalexandrescu/dotfiles/releases/latest/download/dotfiles-linux-arm64.tar.gz
+curl -L -o dotfiles.tar.gz <https://github.com/alexalexandrescu/dotfiles/releases/latest/download/dotfiles-linux-arm64.tar.gz>
 tar -xzf dotfiles.tar.gz
 chmod +x dotfiles
 ./dotfiles bootstrap
@@ -100,7 +100,7 @@ chmod +x dotfiles
 ### "Command not found: curl"
 Install curl first (varies by OS), or use wget:
 ```bash
-wget https://github.com/alexalexandrescu/dotfiles/releases/latest/download/install.sh
+wget <https://github.com/alexalexandrescu/dotfiles/releases/latest/download/install.sh>
 chmod +x install.sh
 ./install.sh
 ```
@@ -126,4 +126,3 @@ After bootstrap:
 4. Sync updates: `./dotfiles sync`
 
 Enjoy your new development environment! 🚀
-

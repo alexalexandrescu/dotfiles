@@ -6,7 +6,7 @@ For new machines where git might not be configured:
 
 ```bash
 # Download and run install script
-curl -L https://github.com/alexalexandrescu/dotfiles/releases/latest/download/install.sh | bash
+curl -L <https://github.com/alexalexandrescu/dotfiles/releases/latest/download/install.sh> | bash
 ```
 
 This will:
@@ -100,7 +100,7 @@ The downloaded executable is completely self-contained:
 ## Version Information
 
 Check the latest release:
-- GitHub Releases: https://github.com/alexalexandrescu/dotfiles/releases
+- GitHub Releases: <https://github.com/alexalexandrescu/dotfiles/releases>
 - Each push to `main` creates a new release automatically
 - Version format: `YYYY.MM.DD-commitSHA`
 
@@ -120,5 +120,4 @@ Make sure you downloaded the correct version for your platform:
 
 ### Download Failed
 Try downloading directly from:
-https://github.com/alexalexandrescu/dotfiles/releases/latest
-
+<https://github.com/alexalexandrescu/dotfiles/releases/latest>
