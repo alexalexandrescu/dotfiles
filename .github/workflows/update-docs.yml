@@ -3,6 +3,10 @@ name: Update Documentation
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write   # Required to create pull requests
+  pull-requests: write  # Required to create pull requests
+
 jobs:
   update-package-docs:
     name: Update Package Documentation
