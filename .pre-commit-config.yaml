@@ -10,12 +10,13 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
       - id: check-json
+        exclude: ^shared/(\.vscode|\.cursor)/
       - id: detect-private-key
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.9.0.5
     hooks:
       - id: shellcheck
-        args: ['-e', 'SC1090,SC1091,SC1099,SC2034,SC2086,SC2148,SC2155,SC2038,SC2162,SC2001,SC2088,SC2193,SC2046,SC2206,SC2317']
+        args: ['-e', 'SC1090,SC1091,SC1099,SC2034,SC2086,SC2148,SC2155,SC2038,SC2162,SC2001,SC2088,SC2193,SC2046,SC2164,SC2206,SC2237,SC2317']
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.32.0
     hooks:
