@@ -13,26 +13,23 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: macos-latest
-            target: macos-x64
+          - os: macos-15
             output: dist/mac/dotfiles
             archive_name: dotfiles-macos-x64
             platform: macos
-          - os: macos-14
-            target: macos-arm64
+          - os: macos-latest
             output: dist/mac-arm/dotfiles
             archive_name: dotfiles-macos-arm64
             platform: macos
           - os: ubuntu-latest
-            target: linux-x64
             output: dist/ubuntu/dotfiles
             archive_name: dotfiles-linux-x64
             platform: linux
           - os: ubuntu-latest
-            target: linux-arm64
             output: dist/ubuntu-arm/dotfiles
             archive_name: dotfiles-linux-arm64
             platform: linux
+            runs-on: ubuntu-latest-8-cores
 
     steps:
       - uses: actions/checkout@v4
@@ -48,7 +45,7 @@ jobs:
       - name: Build executable
         run: |
           mkdir -p $(dirname ${{ matrix.output }})
-          bun build --compile --minify src/cli.ts --target ${{ matrix.target }} --outfile ${{ matrix.output }}
+          bun build --compile --minify src/cli.ts --outfile ${{ matrix.output }}
 
       - name: Make executable
         run: chmod +x ${{ matrix.output }}
