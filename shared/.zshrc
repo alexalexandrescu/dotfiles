@@ -229,7 +229,8 @@ if [[ -f ~/.zcompdump ]]; then
     compinit -C
 else
     compinit
-fi# The following lines have been added by Docker Desktop to enable Docker CLI completions.
+fi
+# The following lines have been added by Docker Desktop to enable Docker CLI completions.
 fpath=(/Users/alex/.docker/completions $fpath)
 autoload -Uz compinit
 compinit
