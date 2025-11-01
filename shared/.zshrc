@@ -230,14 +230,19 @@ if [[ -f ~/.zcompdump ]]; then
 else
     compinit
 fi
+
 # The following lines have been added by Docker Desktop to enable Docker CLI completions.
-fpath=(/Users/alex/.docker/completions $fpath)
-autoload -Uz compinit
-compinit
+if [ -d "$HOME/.docker/completions" ]; then
+    fpath=("$HOME/.docker/completions" $fpath)
+    autoload -Uz compinit
+    compinit
+fi
 # End of Docker CLI completions
 
 # Scaleway CLI autocomplete initialization.
 eval "$(scw autocomplete script shell=zsh)"
 
-# bun completions
-[ -s "/Users/alex/.bun/_bun" ] && source "/Users/alex/.bun/_bun"
+# Bun completions (if installed)
+if [ -s "$HOME/.bun/_bun" ]; then
+    source "$HOME/.bun/_bun"
+fi
