@@ -1,0 +1,364 @@
+{
+  "metadata": {
+    "version": "2.0.0",
+    "last_updated": "2024-12-19",
+    "supported_platforms": ["macos", "ubuntu"]
+  },
+  "symlinks": {
+    "defaults": {
+      "relink": true,
+      "create": true,
+      "force": true
+    },
+    "clean": ["~"],
+    "links": {
+      "~/.zshrc": "shared/.zshrc",
+      "~/.aliases": "shared/.aliases",
+      "~/.modern-aliases": "shared/.modern-aliases",
+      "~/.dev-automations": "shared/.dev-automations",
+      "~/.project-templates": "shared/.project-templates",
+      "~/.env-detection": "shared/.env-detection",
+      "~/.gitconfig": "shared/.gitconfig",
+      "~/.gitignore_global": "shared/.gitignore_global",
+      "~/.npmrc": "shared/.npmrc",
+      "~/.nvmrc": "shared/.nvmrc",
+      "~/.vimrc": "shared/.vimrc",
+      "~/.tmux.conf": "shared/.tmux.conf",
+      "~/.config/micro/settings.json": "shared/.microrc",
+      "~/.vscode/settings.json": "shared/.vscode/settings.json",
+      "~/.cursor/settings.json": "shared/.cursor/settings.json"
+    },
+    "directories": [
+      "~/.config/micro",
+      "~/.vscode",
+      "~/.cursor"
+    ],
+    "shell_commands": [
+      {
+        "command": "git config --global core.excludesfile ~/.gitignore_global",
+        "description": "Setting up global gitignore"
+      }
+    ]
+  },
+  "categories": {
+    "development": {
+      "description": "Core development tools",
+      "priority": 1,
+      "packages": [
+        {
+          "name": "git",
+          "macos": "git",
+          "ubuntu": "git",
+          "version_constraint": ">=2.30.0",
+          "required": true
+        },
+        {
+          "name": "curl",
+          "macos": "curl",
+          "ubuntu": "curl",
+          "version_constraint": ">=7.68.0",
+          "required": true
+        },
+        {
+          "name": "wget",
+          "macos": "wget",
+          "ubuntu": "wget",
+          "required": true
+        },
+        {
+          "name": "jq",
+          "macos": "jq",
+          "ubuntu": "jq",
+          "version_constraint": ">=1.6",
+          "required": true
+        },
+        {
+          "name": "tree",
+          "macos": "tree",
+          "ubuntu": "tree",
+          "required": false
+        },
+        {
+          "name": "htop",
+          "macos": "htop",
+          "ubuntu": "htop",
+          "required": false
+        }
+      ]
+    },
+    "typescript": {
+      "description": "TypeScript development tools",
+      "priority": 2,
+      "packages": [
+        {
+          "name": "node",
+          "macos": "node@lts",
+          "ubuntu": "nodejs",
+          "version_constraint": ">=18.0.0",
+          "post_install": ["npm install -g npm@latest"],
+          "required": true
+        },
+        {
+          "name": "typescript",
+          "global_npm": "typescript",
+          "version_constraint": ">=4.9.0",
+          "required": true
+        },
+        {
+          "name": "ts-node",
+          "global_npm": "ts-node",
+          "version_constraint": ">=10.0.0",
+          "required": true
+        },
+        {
+          "name": "nodemon",
+          "global_npm": "nodemon",
+          "version_constraint": ">=2.0.0",
+          "required": false
+        },
+        {
+          "name": "bun",
+          "macos": "bun",
+          "ubuntu": "bun",
+          "version_constraint": ">=1.0.0",
+          "required": false,
+          "post_install": ["bun completions"]
+        }
+      ]
+    },
+    "modern_cli": {
+      "description": "Modern CLI replacements and enhancements",
+      "priority": 3,
+      "packages": [
+        {
+          "name": "ripgrep",
+          "macos": "ripgrep",
+          "ubuntu": "ripgrep",
+          "description": "Ultra-fast text search",
+          "version_constraint": ">=13.0.0",
+          "post_install": ["rg --generate complete-zsh > ~/.local/share/zsh/completions/_rg"],
+          "required": true
+        },
+        {
+          "name": "fd",
+          "macos": "fd",
+          "ubuntu": "fd-find",
+          "description": "Modern find replacement",
+          "version_constraint": ">=8.0.0",
+          "required": true
+        },
+        {
+          "name": "bat",
+          "macos": "bat",
+          "ubuntu": "bat",
+          "description": "cat with syntax highlighting",
+          "version_constraint": ">=0.20.0",
+          "post_install": ["bat cache --build"],
+          "required": true
+        },
+        {
+          "name": "eza",
+          "macos": "eza",
+          "ubuntu": "eza",
+          "description": "Modern ls replacement (exa successor)",
+          "version_constraint": ">=0.10.0",
+          "fallback": {
+            "macos": "exa",
+            "ubuntu": "exa"
+          },
+          "required": true
+        },
+        {
+          "name": "fzf",
+          "macos": "fzf",
+          "ubuntu": "fzf",
+          "description": "Fuzzy finder for files/commands",
+          "version_constraint": ">=0.35.0",
+          "post_install": ["$(brew --prefix)/opt/fzf/install --all"],
+          "required": true
+        },
+        {
+          "name": "zoxide",
+          "macos": "zoxide",
+          "ubuntu": "zoxide",
+          "description": "Smart directory navigator",
+          "version_constraint": ">=0.8.0",
+          "required": true
+        },
+        {
+          "name": "starship",
+          "macos": "starship",
+          "ubuntu": "starship",
+          "description": "Cross-shell prompt",
+          "version_constraint": ">=1.10.0",
+          "required": false
+        },
+        {
+          "name": "direnv",
+          "macos": "direnv",
+          "ubuntu": "direnv",
+          "description": "Environment switcher",
+          "version_constraint": ">=2.30.0",
+          "required": false
+        },
+        {
+          "name": "tldr",
+          "macos": "tldr",
+          "ubuntu": "tldr",
+          "description": "Simplified man pages",
+          "required": false,
+          "post_install": ["tldr --update"]
+        }
+      ]
+    },
+    "docker": {
+      "description": "Container development",
+      "packages": [
+        {
+          "name": "docker",
+          "macos": "docker",
+          "ubuntu": "docker.io"
+        },
+        {
+          "name": "docker-compose",
+          "macos": "docker-compose",
+          "ubuntu": "docker-compose"
+        }
+      ]
+    },
+    "productivity": {
+      "description": "Productivity tools",
+      "packages": [
+        {
+          "name": "tmux",
+          "macos": "tmux",
+          "ubuntu": "tmux"
+        },
+        {
+          "name": "nano",
+          "macos": "nano",
+          "ubuntu": "nano",
+          "description": "Simple terminal text editor"
+        },
+        {
+          "name": "micro",
+          "macos": "micro",
+          "ubuntu": "micro",
+          "description": "Modern terminal editor (vim alternative)"
+        }
+      ]
+    },
+    "developer_tools": {
+      "description": "Advanced developer utilities",
+      "packages": [
+        {
+          "name": "git-extras",
+          "macos": "git-extras",
+          "ubuntu": "git-extras",
+          "description": "Advanced Git utilities"
+        },
+        {
+          "name": "gh",
+          "macos": "gh",
+          "ubuntu": "gh",
+          "description": "GitHub CLI"
+        },
+        {
+          "name": "just",
+          "macos": "just",
+          "ubuntu": "just",
+          "description": "Command runner"
+        },
+        {
+          "name": "navi",
+          "macos": "navi",
+          "ubuntu": "navi",
+          "description": "Interactive cheatsheets"
+        },
+        {
+          "name": "hyperfine",
+          "macos": "hyperfine",
+          "ubuntu": "hyperfine",
+          "description": "Command-line benchmarking"
+        }
+      ]
+    },
+    "gui_applications": {
+      "description": "GUI applications (desktop environment required)",
+      "priority": 10,
+      "condition": "desktop_environment",
+      "packages": [
+        {
+          "name": "cursor",
+          "macos": "cursor",
+          "ubuntu": null,
+          "description": "AI-powered code editor",
+          "platform_specific": true,
+          "required": false
+        },
+        {
+          "name": "visual-studio-code",
+          "macos": "visual-studio-code",
+          "ubuntu": "code",
+          "description": "Microsoft code editor",
+          "required": false
+        },
+        {
+          "name": "docker-desktop",
+          "macos": "docker",
+          "ubuntu": null,
+          "description": "Docker Desktop GUI",
+          "platform_specific": true,
+          "required": false
+        },
+        {
+          "name": "iterm2",
+          "macos": "iterm2",
+          "ubuntu": null,
+          "description": "Enhanced terminal for macOS",
+          "platform_specific": true,
+          "required": false
+        }
+      ]
+    },
+    "optional": {
+      "description": "Optional tools (install with --optional flag)",
+      "priority": 9,
+      "packages": [
+        {
+          "name": "lazygit",
+          "macos": "lazygit",
+          "ubuntu": "lazygit",
+          "optional": true,
+          "description": "Git TUI",
+          "version_constraint": ">=0.35.0"
+        },
+        {
+          "name": "httpie",
+          "macos": "httpie",
+          "ubuntu": "httpie",
+          "optional": true,
+          "description": "HTTP client",
+          "version_constraint": ">=3.0.0"
+        },
+        {
+          "name": "glances",
+          "macos": "glances",
+          "ubuntu": "glances",
+          "optional": true,
+          "description": "System monitor",
+          "version_constraint": ">=3.3.0"
+        },
+        {
+          "name": "bandwhich",
+          "macos": "bandwhich",
+          "ubuntu": "bandwhich",
+          "optional": true,
+          "description": "Network monitor",
+          "version_constraint": ">=0.20.0"
+        }
+      ]
+    }
+  }
+}
+

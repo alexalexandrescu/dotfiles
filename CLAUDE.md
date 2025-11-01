@@ -4,86 +4,134 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a comprehensive dotfiles repository optimized for TypeScript developers, supporting both macOS and Ubuntu environments. The architecture is built around declarative configuration management using dotbot, cross-platform package definitions, and extensive automation.
+This is a comprehensive dotfiles repository optimized for TypeScript developers, supporting both macOS and Ubuntu environments. The architecture is built around a modern TypeScript/Bun CLI compiled to self-contained executables.
 
 ## Core Architecture
 
-### Multi-Tier Installation System
-The repository supports multiple installation approaches for different use cases:
+### Modern TypeScript CLI System
+The repository uses a unified TypeScript codebase compiled to native executables:
 
-- **`bootstrap.sh`** - Complete environment setup for new machines
-- **`install` (dotbot)** - Modern declarative configuration using `install.conf.yaml`
-- **`install-safe.sh`** - Interactive installation that preserves existing configurations
-- **Legacy platform-specific installers** - Removed in favor of YAML-based system
+- **Main Entry**: `src/cli.ts` - CLI with commander.js
+- **Configuration**: Single `config.json` validated with Zod
+- **Commands**: Modular command system in `src/commands/`
+- **Build Output**: Self-contained executables (no runtime dependencies)
 
-### Configuration Layer Structure
+### Project Structure
 ```
-shared/          # Cross-platform configurations (zsh, git, aliases, etc.)
-macos/           # macOS-specific configs (Brewfile, platform aliases)
-ubuntu/          # Ubuntu-specific configs (platform aliases)
-scripts/         # Automation and maintenance scripts
-test/            # Comprehensive testing framework
-.github/workflows/ # CI/CD automation (5 workflows)
+src/
+├── cli.ts                    # Main CLI entry point
+├── config/                   # Configuration system
+│   ├── schema.ts            # Zod schemas for validation
+│   ├── loader.ts            # Config loading & validation
+│   └── types.ts             # TypeScript types
+├── commands/                 # CLI commands
+│   ├── bootstrap.ts         # Full environment setup
+│   ├── install.ts           # Installation (safe mode)
+│   ├── packages.ts          # Package management
+│   ├── sync.ts              # Sync updates
+│   ├── backup.ts            # Backup configs
+│   └── test.ts              # Test suite
+├── core/                     # Core functionality
+│   ├── dependencies.ts      # Dependency checker
+│   ├── package-manager.ts   # Package installation
+│   ├── platform.ts          # OS detection
+│   └── symlinks.ts          # Symlink management
+└── utils/                    # Utilities
+    ├── logger.ts            # Colored logging
+    ├── spinner.ts           # Progress indicators
+    └── prompt.ts            # Interactive prompts (inquirer)
 ```
 
-### Package Management Architecture
-The `packages.yaml` file defines cross-platform package installations using categories:
-- `development` - Core dev tools
-- `typescript` - Node.js ecosystem
-- `modern_cli` - Enhanced Unix tools (bat, exa, ripgrep, etc.)
-- `developer_tools` - Advanced utilities (git-extras, gh, hyperfine)
-- `docker` / `productivity` / `optional` - Specialized tool sets
+### Configuration System
 
-The `scripts/install-packages-yaml.sh` script processes this YAML to install packages using the appropriate package manager (brew/apt) and handles global npm packages.
+**Single `config.json`** consolidates all configuration:
+- Package definitions (cross-platform mappings)
+- Symlink configurations
+- Installation categories and priorities
+- Version constraints
+- Post-install commands
+
+Validated with Zod schemas in `src/config/schema.ts` for runtime type safety.
+
+### Build System
+
+**Development:**
+```bash
+bun install           # Install dependencies
+bun run dev          # Run without compiling
+bun run build:local  # Build for current platform
+```
+
+**Production:**
+```bash
+bun run build        # Build all platforms
+```
+
+**Build Outputs:**
+- `dist/dotfiles` - macOS ARM64 (local)
+- `dist/mac/dotfiles` - macOS Intel
+- `dist/mac-arm/dotfiles` - macOS Apple Silicon
+- `dist/ubuntu/dotfiles` - Linux x64
+- `dist/ubuntu-arm/dotfiles` - Linux ARM64
+
+### Smart Symlink Protection
+
+The symlink management system prevents overwriting user/app configurations:
+
+1. **Dotfiles-Managed Detection**: Only updates symlinks managed by dotfiles
+2. **Recent File Protection**: Skips files modified in last hour
+3. **Config Directory Protection**: Never overwrites `.config/` files
+4. **Clear Warnings**: Logs why files are skipped
 
 ## Essential Development Commands
 
-### Testing and Validation
+### Build & Test
 ```bash
-./test/test-dotfiles.sh              # Run comprehensive test suite
-./scripts/install-packages-yaml.sh --help # Show package installation options
+bun run typecheck    # TypeScript validation
+bun run build:local  # Build executable
+bun run test         # Run test suite (placeholder)
+```
+
+### Run Commands
+```bash
+./dist/dotfiles bootstrap      # Full setup
+./dist/dotfiles install --safe # Interactive install
+./dist/dotfiles packages       # Install packages
+./dist/dotfiles check-deps     # Verify dependencies
 ```
 
 ### Package Management
 ```bash
-./scripts/install-packages-yaml.sh modern_cli              # Install specific category
-./scripts/install-packages-yaml.sh --optional              # Include optional tools
-./scripts/install-packages-yaml.sh typescript docker      # Multiple categories
+./dist/dotfiles packages modern_cli              # Install specific category
+./dist/dotfiles packages --optional              # Include optional tools
+./dist/dotfiles packages typescript docker       # Multiple categories
+./dist/dotfiles packages --dry-run development   # Preview installation
 ```
 
 ### Maintenance
 ```bash
-./scripts/sync-settings.sh          # Update all tools and sync dotfiles
-./scripts/backup-configs.sh         # Create timestamped backup
+./dist/dotfiles sync                            # Update all tools
+./dist/dotfiles backup                          # Create backup
+./dist/dotfiles test                            # Run test suite
 ```
 
-### Installation Testing
-```bash
-# Test different installation methods
-./install                           # Test dotbot installation
-echo "y\ny\ny\ny\nn" | ./install-safe.sh  # Test safe installation
-```
+## Configuration Files
 
-## Key Configuration Files
+### `config.json` (Primary)
+Consolidates all package and symlink configurations:
+- Package definitions with cross-platform mappings
+- Symlink configurations
+- Installation categories and priorities
+- Version constraints
+- Post-install commands
 
-### `install.conf.yaml` (Dotbot Configuration)
-Declarative configuration that defines:
-- Symlinks from `shared/` and platform-specific directories to home directory
-- Conditional linking based on OS detection
-- Directory creation (e.g., `~/.config/micro`)
-- Shell commands for setup (git config, Oh My Zsh installation)
-
-### `packages.yaml` (Package Definitions)
-Structured package definitions with:
-- Cross-platform package mappings (`macos` vs `ubuntu` package names)
-- Global npm package specifications (`global_npm`)
-- Optional package flags
-- Descriptive metadata for documentation generation
+### Validation
+All configuration validated with Zod at runtime in `src/config/schema.ts`.
 
 ### Shell Configuration Architecture
 The shell setup loads in this order:
-1. `shared/.zshrc` - Main configuration with Oh My Zsh
-2. `shared/.env-detection` - Environment detection functions
+1. `shared/.zshrc` - Main configuration
+2. `shared/.env-detection` - Environment detection
 3. `shared/.aliases` - Core development aliases and functions
 4. `shared/.modern-aliases` - Modern CLI tool integrations
 5. `shared/.dev-automations` - Advanced development functions
@@ -104,39 +152,119 @@ The shell setup loads in this order:
 
 ## Testing Framework
 
-The `test/test-dotfiles.sh` script provides comprehensive validation:
+The test suite in `src/commands/test.ts` validates:
 - Core file existence and symlink verification
-- Tool availability checks (git, zsh, node, etc.)
+- Tool availability checks
 - Shell function testing
 - Git configuration validation
-- Oh My Zsh plugin verification
-- Performance testing (shell startup time)
-
-Tests use a colored output system with counters and provide detailed failure reporting.
+- Performance testing
 
 ## GitHub Actions Automation
 
-Five workflows provide continuous validation:
-1. **`test-dotfiles.yml`** - Cross-platform testing (Ubuntu/macOS) with multiple installation methods
-2. **`security-check.yml`** - Secret detection, shell validation, dangerous command checking
-3. **`update-dependencies.yml`** - Monthly automated updates for Oh My Zsh, NVM, etc.
-4. **`update-docs.yml`** - Documentation consistency and package count updates
-5. **`validate-fresh-install.yml`** - Fresh environment testing and performance benchmarking
+**Build & Release Workflow** (`.github/workflows/build-release.yml`):
+- Builds on every push to `main`
+- Creates versioned releases automatically
+- Builds all 4 platform executables
+- Generates install script
+- Releases format: `YYYY.MM.DD-commitSHA`
+
+**Build Workflow** (`.github/workflows/build.yml`):
+- CI builds on pull requests
+- Type checking
+- Build verification
 
 ## Cross-Platform Considerations
 
 The codebase handles platform differences through:
-- Conditional logic in dotbot configuration (`if` statements)
-- Platform-specific directories (`macos/` vs `ubuntu/`)
-- Package name mapping in `packages.yaml`
-- Environment detection functions in `shared/.env-detection`
-- OS-specific aliases and tools in `.zshrc.local` files
+- Conditional logic in configuration
+- Platform-specific package names in config.json
+- OS detection in `src/core/platform.ts`
+- Environment detection functions
+- OS-specific aliases in `.zshrc.local` files
 
 ## TypeScript Development Focus
 
-The configuration is specifically optimized for TypeScript developers with:
-- Intelligent package manager detection (bun > pnpm > npm)
-- Pre-configured development environments (Node.js LTS, TypeScript globals)
-- Smart project templates with proper tooling setup
-- Modern CLI tools that enhance development workflow
-- Git workflow optimizations for feature development
+Optimized for TypeScript developers with:
+- Intelligent package manager detection
+- Pre-configured development environments
+- Smart project templates
+- Modern CLI tools integration
+- Git workflow optimizations
+
+## Key Implementation Patterns
+
+### Dependency Checking
+```typescript
+// Tiered dependency verification
+checkTier1()  // Core system tools
+checkTier2()  // Package managers
+checkTier3()  // Language runtimes
+```
+
+### Symlink Management
+```typescript
+// Smart protection against overwrites
+createSymlink(source, target, force)
+  - Checks if managed by dotfiles
+  - Skips recently modified files
+  - Protects config directories
+```
+
+### Configuration Validation
+```typescript
+// Runtime validation with Zod
+const config = configSchema.parse(rawConfig)
+```
+
+### Interactive Prompts
+```typescript
+// Inquirer.js for user interaction
+const answer = await confirm("Proceed?")
+const value = await input("Enter name:")
+const selected = await select("Choose:", choices)
+```
+
+## Migration Notes
+
+### Old System (Removed)
+- bash scripts: `*.sh` files
+- YAML configs: `packages.yaml`, `install.conf.yaml`
+- Python dependencies for YAML parsing
+- Dotbot submodule for symlinking
+
+### New System
+- Single TypeScript codebase
+- Zod-validated JSON config
+- Compiled self-contained executables
+- Zero runtime dependencies
+- Interactive CLI with inquirer
+
+### Common Commands Translation
+
+| Old | New |
+|-----|-----|
+| `./bootstrap.sh` | `./dist/dotfiles bootstrap` |
+| `./install-safe.sh` | `./dist/dotfiles install --safe` |
+| `./scripts/install-packages-yaml.sh packages` | `./dist/dotfiles packages packages` |
+| `./scripts/sync-settings.sh` | `./dist/dotfiles sync` |
+| `./test/test-dotfiles.sh` | `./dist/dotfiles test` |
+
+## Troubleshooting
+
+### Build Issues
+```bash
+bun run typecheck  # Check for TypeScript errors
+rm -rf node_modules && bun install  # Clean reinstall
+```
+
+### Runtime Issues
+```bash
+./dist/dotfiles check-deps  # Verify dependencies
+bun run dev                 # Run from source for debugging
+```
+
+### Configuration Issues
+```bash
+# Validate config.json
+node -e "const z = require('zod'); const s = require('./src/config/schema.ts'); console.log('Valid!')"
+```
