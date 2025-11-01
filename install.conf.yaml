@@ -28,7 +28,7 @@
     ~/.vimrc: shared/.vimrc
     ~/.tmux.conf: shared/.tmux.conf
     ~/.config/micro/settings.json: shared/.microrc
-    
+
     # IDE configurations
     ~/.vscode/settings.json: shared/.vscode/settings.json
     ~/.cursor/settings.json: shared/.cursor/settings.json

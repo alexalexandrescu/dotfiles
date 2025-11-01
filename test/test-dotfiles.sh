@@ -111,7 +111,7 @@ test_shell_functions() {
     run_test "smart-install function exists" "zsh -c 'source ~/.dev-automations && typeset -f smart-install' >/dev/null"
     run_test "git-feature function exists" "zsh -c 'source ~/.aliases && typeset -f git-feature' >/dev/null"
     run_test "dev function exists" "zsh -c 'source ~/.aliases && typeset -f dev' >/dev/null"
-    
+
     # Test shell performance cache system
     run_test "modern CLI cache system works" "zsh -c 'source ~/.modern-aliases && [[ -n \"\${_MODERN_CLI_CACHE_LOADED:-}\" ]]'"
 }
@@ -124,18 +124,18 @@ test_git_config() {
     run_test "git user email set" "git config --global user.email >/dev/null"
     run_test "git editor set" "git config --global core.editor >/dev/null"
     run_test "global gitignore configured" "git config --global core.excludesfile >/dev/null"
-    
+
     # Validate Git configuration syntax
     run_test "gitconfig syntax is valid" "git config --list --global >/dev/null 2>&1"
-    
+
     # Test specific Git configurations
     run_test "git push default is set" "git config --global push.default >/dev/null || echo 'simple' | git config --global push.default simple"
     run_test "git pull rebase is configured" "git config --global pull.rebase >/dev/null || git config --global pull.rebase false"
-    
+
     # Validate gitignore_global exists and is readable
     run_test "global gitignore file exists" "test -f ~/.gitignore_global"
     run_test "global gitignore is readable" "test -r ~/.gitignore_global"
-    
+
     # Test Git aliases if they exist
     if git config --global --get-regexp '^alias\.' >/dev/null 2>&1; then
         run_test "git aliases are valid" "git config --global --get-regexp '^alias\.' >/dev/null"
@@ -209,7 +209,7 @@ test_performance() {
 # Configuration file validation tests
 test_configuration_validation() {
     log_info "Testing configuration file validation..."
-    
+
     # YAML configuration validation
     if command -v python3 &>/dev/null; then
         run_test "packages.yaml is valid YAML" "python3 -c 'import yaml; yaml.safe_load(open(\"$DOTFILES_DIR/packages.yaml\"))'"
@@ -217,7 +217,7 @@ test_configuration_validation() {
     else
         log_warn "Python3 not available, skipping YAML validation"
     fi
-    
+
     # JSON configuration validation (handle JSONC format)
     if command -v node &>/dev/null; then
         if [ -f ~/.vscode/settings.json ]; then
@@ -237,7 +237,7 @@ test_configuration_validation() {
     else
         log_warn "Neither Node.js nor jq available, skipping JSON validation"
     fi
-    
+
     # Shell script syntax validation
     local scripts_to_check=(
         "$DOTFILES_DIR/bootstrap.sh"
@@ -248,7 +248,7 @@ test_configuration_validation() {
         "$DOTFILES_DIR/scripts/backup-configs.sh"
         "$DOTFILES_DIR/test/test-dotfiles.sh"
     )
-    
+
     for script in "${scripts_to_check[@]}"; do
         if [ -f "$script" ]; then
             local script_name=$(basename "$script")
@@ -260,11 +260,11 @@ test_configuration_validation() {
 # IDE configuration tests
 test_ide_configurations() {
     log_info "Testing IDE configurations..."
-    
+
     # Check IDE config directories
     run_test "VSCode config directory exists" "[ -d ~/.vscode ] || mkdir -p ~/.vscode"
     run_test "Cursor config directory exists" "[ -d ~/.cursor ] || mkdir -p ~/.cursor"
-    
+
     # Check IDE configuration files
     if [ -f ~/.vscode/settings.json ]; then
         run_test "VSCode settings file is readable" "test -r ~/.vscode/settings.json"
@@ -272,7 +272,7 @@ test_ide_configurations() {
             run_test "VSCode settings contain TypeScript config" 'node -e "console.log(JSON.parse(require(\"fs\").readFileSync(process.env.HOME+\"/.vscode/settings.json\", \"utf8\").replace(/\\/\\/.*$/gm, \"\").replace(/\\/\\*[\\s\\S]*?\\*\\//g, \"\"))[\"typescript.updateImportsOnFileMove.enabled\"])" | grep -q always'
         fi
     fi
-    
+
     if [ -f ~/.cursor/settings.json ]; then
         run_test "Cursor settings file is readable" "test -r ~/.cursor/settings.json"
         if command -v jq &>/dev/null; then
@@ -284,12 +284,12 @@ test_ide_configurations() {
 # Package management validation tests
 test_package_management() {
     log_info "Testing package management configuration..."
-    
+
     # Test package files exist
     run_test "packages.yaml exists" "[ -f $DOTFILES_DIR/packages.yaml ]"
     run_test "new YAML installer exists" "[ -f $DOTFILES_DIR/scripts/install-packages-yaml.sh ]"
     run_test "new YAML installer is executable" "[ -x $DOTFILES_DIR/scripts/install-packages-yaml.sh ]"
-    
+
     # Test package manager availability
     if [[ "$OSTYPE" == "darwin"* ]]; then
         run_test "Homebrew is available" "command -v brew"
@@ -299,7 +299,7 @@ test_package_management() {
     elif [[ "$OSTYPE" == "linux"* ]]; then
         run_test "APT is available" "command -v apt"
     fi
-    
+
     # Test npm configuration
     if command -v npm &>/dev/null; then
         run_test "npm configuration is valid" "npm config list >/dev/null 2>&1"
@@ -312,7 +312,7 @@ test_package_management() {
 # Symlink integrity tests
 test_symlink_integrity() {
     log_info "Testing symlink integrity..."
-    
+
     local config_files=(
         "~/.zshrc:shared/.zshrc"
         "~/.gitconfig:shared/.gitconfig"
@@ -322,11 +322,11 @@ test_symlink_integrity() {
         "~/.env-detection:shared/.env-detection"
         "~/.npmrc:shared/.npmrc"
     )
-    
+
     for config in "${config_files[@]}"; do
         IFS=':' read -r target_path source_path <<< "$config"
         expanded_target=$(eval echo "$target_path")
-        
+
         if [ -L "$expanded_target" ]; then
             run_test "$(basename "$target_path") symlink target exists" "[ -f \"\$(readlink \"$expanded_target\")\" ]"
             run_test "$(basename "$target_path") symlink is not broken" "[ -e \"$expanded_target\" ]"
