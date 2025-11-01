@@ -18,7 +18,7 @@ detect_package_manager() {
 setup_common_scripts() {
     local pm="$1"
     local project_type="$2"
-    
+
     case "$pm" in
         "bun")
             cat >> package.json << 'EOF'
@@ -56,21 +56,21 @@ EOF
 create-react-project() {
     local name="$1"
     local pm=$(detect_package_manager)
-    
+
     if command -v bun &> /dev/null && [[ "$pm" == "bun" ]]; then
         bun create react-app . --template typescript
     else
         npx create-react-app . --template typescript
-        
+
         # Add additional useful dependencies
         $pm install -D @types/jest @testing-library/react @testing-library/jest-dom @testing-library/user-event
         $pm install tailwindcss @types/node
     fi
-    
+
     # Add custom scripts
     npm pkg set scripts.analyze="npx webpack-bundle-analyzer build/static/js/*.js"
     npm pkg set scripts.eject="react-scripts eject"
-    
+
     echo "✅ React TypeScript project created"
     echo "💡 Next steps: $pm start"
 }
@@ -78,13 +78,13 @@ create-react-project() {
 create-vue-project() {
     local name="$1"
     local pm=$(detect_package_manager)
-    
+
     if command -v vue &> /dev/null; then
         vue create . --preset default --packageManager $pm --router --vuex --typescript
     else
         npx @vue/cli create . --preset default --packageManager $pm --router --vuex --typescript
     fi
-    
+
     echo "✅ Vue.js TypeScript project created"
     echo "💡 Next steps: $pm run serve"
 }
@@ -92,26 +92,26 @@ create-vue-project() {
 create-svelte-project() {
     local name="$1"
     local pm=$(detect_package_manager)
-    
+
     npx create-svelte-app . --template typescript
     $pm install
-    
+
     # Add additional dependencies
     $pm install -D @tsconfig/svelte typescript svelte-check svelte-preprocess
-    
+
     echo "✅ Svelte TypeScript project created"
     echo "💡 Next steps: $pm run dev"
 }
 
 create-angular-project() {
     local name="$1"
-    
+
     if command -v ng &> /dev/null; then
         ng new . --routing --style=scss --package-manager=$(detect_package_manager)
     else
         npx @angular/cli new . --routing --style=scss --package-manager=$(detect_package_manager)
     fi
-    
+
     echo "✅ Angular project created"
     echo "💡 Next steps: ng serve"
 }
@@ -119,12 +119,12 @@ create-angular-project() {
 create-nextjs-project() {
     local name="$1"
     local pm=$(detect_package_manager)
-    
+
     npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
-    
+
     # Add additional useful dependencies
     $pm install -D @types/node prettier
-    
+
     # Add custom configuration
     cat > next.config.js << 'EOF'
 /** @type {import('next').NextConfig} */
@@ -142,7 +142,7 @@ const nextConfig = {
 
 module.exports = nextConfig
 EOF
-    
+
     echo "✅ Next.js 13+ TypeScript project created"
     echo "💡 Next steps: $pm run dev"
 }
@@ -150,13 +150,13 @@ EOF
 create-nuxt-project() {
     local name="$1"
     local pm=$(detect_package_manager)
-    
+
     npx nuxi@latest init .
     $pm install
-    
+
     # Add TypeScript support
     $pm install -D typescript @nuxt/typescript-build
-    
+
     echo "✅ Nuxt.js TypeScript project created"
     echo "💡 Next steps: $pm run dev"
 }
@@ -164,9 +164,9 @@ create-nuxt-project() {
 create-astro-project() {
     local name="$1"
     local pm=$(detect_package_manager)
-    
+
     npx create-astro@latest . --template minimal --typescript --git --install --package-manager $pm
-    
+
     echo "✅ Astro project created"
     echo "💡 Next steps: $pm run dev"
 }
@@ -176,17 +176,17 @@ create-astro-project() {
 create-fastify-ts-project() {
     local name="$1"
     local pm=$(detect_package_manager)
-    
+
     # Initialize package.json
     $pm init -y
-    
+
     # Install dependencies
     $pm install fastify @fastify/cors @fastify/helmet @fastify/rate-limit
     $pm install -D typescript @types/node tsx nodemon eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin prettier
-    
+
     # Create project structure
     mkdir -p src/{routes,plugins,types} tests
-    
+
     # Create main server file
     cat > src/server.ts << 'EOF'
 import fastify from 'fastify';
@@ -232,7 +232,7 @@ const start = async () => {
 
 start();
 EOF
-    
+
     # Create TypeScript config
     cat > tsconfig.json << 'EOF'
 {
@@ -261,32 +261,32 @@ EOF
   "exclude": ["node_modules", "dist", "tests"]
 }
 EOF
-    
+
     # Update package.json with scripts
     setup_common_scripts "$pm" "fastify"
     npm pkg set scripts.dev="tsx watch src/server.ts"
     npm pkg set scripts.start="node dist/server.js"
-    
+
     echo "✅ Fastify TypeScript API created"
     echo "💡 Next steps: $pm run dev"
 }
 
 create-nest-project() {
     local name="$1"
-    
+
     if command -v nest &> /dev/null; then
         nest new . --package-manager $(detect_package_manager)
     else
         npx @nestjs/cli new . --package-manager $(detect_package_manager)
     fi
-    
+
     echo "✅ NestJS project created"
     echo "💡 Next steps: npm run start:dev"
 }
 
 create-deno-project() {
     local name="$1"
-    
+
     # Create deno.json
     cat > deno.json << 'EOF'
 {
@@ -320,10 +320,10 @@ create-deno-project() {
   }
 }
 EOF
-    
+
     # Create project structure
     mkdir -p src tests
-    
+
     # Create main server file
     cat > src/main.ts << 'EOF'
 import { Application, Router } from "https://deno.land/x/oak@v12.6.1/mod.ts";
@@ -331,16 +331,16 @@ import { Application, Router } from "https://deno.land/x/oak@v12.6.1/mod.ts";
 const router = new Router();
 
 router.get("/", (ctx) => {
-  ctx.response.body = { 
-    message: "Deno TypeScript API 🦕", 
-    timestamp: new Date().toISOString() 
+  ctx.response.body = {
+    message: "Deno TypeScript API 🦕",
+    timestamp: new Date().toISOString()
   };
 });
 
 router.get("/health", (ctx) => {
-  ctx.response.body = { 
-    status: "OK", 
-    uptime: Deno.uptime() 
+  ctx.response.body = {
+    status: "OK",
+    uptime: Deno.uptime()
   };
 });
 
@@ -354,7 +354,7 @@ const port = Number(Deno.env.get("PORT")) || 3000;
 console.log(`🚀 Server running on port ${port}`);
 await app.listen({ port });
 EOF
-    
+
     # Create test file
     cat > tests/main_test.ts << 'EOF'
 import { assertEquals } from "https://deno.land/std@0.203.0/testing/asserts.ts";
@@ -363,20 +363,20 @@ Deno.test("basic test", () => {
   assertEquals(1 + 1, 2);
 });
 EOF
-    
+
     echo "✅ Deno TypeScript project created"
     echo "💡 Next steps: deno task dev"
 }
 
 create-bun-server-project() {
     local name="$1"
-    
+
     bun init -y
     bun install
-    
+
     # Create project structure
     mkdir -p src/{routes,middleware} tests
-    
+
     # Create main server file using Bun's built-in server
     cat > src/server.ts << 'EOF'
 import { serve } from "bun";
@@ -385,34 +385,34 @@ const server = serve({
   port: Number(process.env.PORT) || 3000,
   async fetch(req) {
     const url = new URL(req.url);
-    
+
     if (url.pathname === "/") {
       return Response.json({
         message: "Bun TypeScript API ⚡",
         timestamp: new Date().toISOString()
       });
     }
-    
+
     if (url.pathname === "/health") {
       return Response.json({
         status: "OK",
         uptime: process.uptime()
       });
     }
-    
+
     return new Response("Not Found", { status: 404 });
   },
 });
 
 console.log(`🚀 Server running on port ${server.port}`);
 EOF
-    
+
     # Update package.json with Bun-specific scripts
     npm pkg set scripts.dev="bun --watch src/server.ts"
     npm pkg set scripts.start="bun src/server.ts"
     npm pkg set scripts.test="bun test"
     npm pkg set scripts.build="echo 'No build needed for Bun'"
-    
+
     echo "✅ Bun TypeScript server created"
     echo "💡 Next steps: bun run dev"
 }
@@ -421,9 +421,9 @@ EOF
 
 create-t3-project() {
     local name="$1"
-    
+
     npx create-t3-app@latest . --nextjs --typescript --tailwind --trpc --prisma --nextAuth
-    
+
     echo "✅ T3 Stack project created (Next.js + TypeScript + Tailwind + tRPC + Prisma + NextAuth)"
     echo "💡 Next steps: npm run dev"
 }
@@ -431,9 +431,9 @@ create-t3-project() {
 create-remix-project() {
     local name="$1"
     local pm=$(detect_package_manager)
-    
+
     npx create-remix@latest . --template typescript --package-manager $pm
-    
+
     echo "✅ Remix TypeScript project created"
     echo "💡 Next steps: $pm run dev"
 }
@@ -442,18 +442,18 @@ create-remix-project() {
 
 create-react-native-project() {
     local name="$1"
-    
+
     npx react-native init "$name" --template react-native-template-typescript
-    
+
     echo "✅ React Native TypeScript project created"
     echo "💡 Next steps: cd $name && npx react-native run-ios"
 }
 
 create-expo-project() {
     local name="$1"
-    
+
     npx create-expo-app . --template typescript
-    
+
     echo "✅ Expo TypeScript project created"
     echo "💡 Next steps: npx expo start"
 }
@@ -461,13 +461,13 @@ create-expo-project() {
 create-electron-project() {
     local name="$1"
     local pm=$(detect_package_manager)
-    
+
     $pm init -y
     $pm install -D electron @types/node typescript tsx
     $pm install electron-is-dev
-    
+
     mkdir -p src public
-    
+
     # Create main electron file
     cat > src/main.ts << 'EOF'
 import { app, BrowserWindow } from 'electron';
@@ -511,7 +511,7 @@ app.on('activate', () => {
   }
 });
 EOF
-    
+
     # Create basic HTML
     cat > public/index.html << 'EOF'
 <!DOCTYPE html>
@@ -526,19 +526,19 @@ EOF
 </body>
 </html>
 EOF
-    
+
     npm pkg set main="dist/main.js"
     npm pkg set scripts.build="tsc"
     npm pkg set scripts.start="electron ."
     npm pkg set scripts.dev="tsx src/main.ts"
-    
+
     echo "✅ Electron TypeScript project created"
     echo "💡 Next steps: $pm run build && $pm start"
 }
 
 create-tauri-project() {
     local name="$1"
-    
+
     if command -v cargo &> /dev/null; then
         cargo install create-tauri-app
         cargo create-tauri-app --app-name "$name" --window-title "$name" --dist-dir "../dist" --dev-path "http://localhost:3000"
@@ -546,7 +546,7 @@ create-tauri-project() {
         echo "❌ Cargo (Rust) is required for Tauri projects"
         return 1
     fi
-    
+
     echo "✅ Tauri project created"
     echo "💡 Next steps: cargo tauri dev"
 }
@@ -556,15 +556,15 @@ create-tauri-project() {
 create-vite-project() {
     local name="$1"
     local pm=$(detect_package_manager)
-    
+
     if command -v bun &> /dev/null && [[ "$pm" == "bun" ]]; then
         bun create vite . --template vanilla-ts
     else
         npm create vite@latest . -- --template vanilla-ts
     fi
-    
+
     $pm install
-    
+
     echo "✅ Vite TypeScript project created"
     echo "💡 Next steps: $pm run dev"
 }
@@ -572,12 +572,12 @@ create-vite-project() {
 create-playwright-project() {
     local name="$1"
     local pm=$(detect_package_manager)
-    
+
     $pm init -y
     $pm install -D @playwright/test typescript
-    
+
     npx playwright install
-    
+
     # Create playwright config
     cat > playwright.config.ts << 'EOF'
 import { defineConfig, devices } from '@playwright/test';
@@ -614,7 +614,7 @@ export default defineConfig({
   },
 });
 EOF
-    
+
     mkdir tests
     cat > tests/example.spec.ts << 'EOF'
 import { test, expect } from '@playwright/test';
@@ -624,11 +624,11 @@ test('has title', async ({ page }) => {
   await expect(page).toHaveTitle(/Example/);
 });
 EOF
-    
+
     npm pkg set scripts.test="playwright test"
     npm pkg set scripts."test:ui"="playwright test --ui"
     npm pkg set scripts."test:report"="playwright show-report"
-    
+
     echo "✅ Playwright testing project created"
     echo "💡 Next steps: $pm test"
 }
@@ -636,12 +636,12 @@ EOF
 create-storybook-project() {
     local name="$1"
     local pm=$(detect_package_manager)
-    
+
     $pm init -y
     $pm install -D @storybook/cli @storybook/react @storybook/addon-essentials
-    
+
     npx storybook init
-    
+
     echo "✅ Storybook project created"
     echo "💡 Next steps: $pm run storybook"
 }
@@ -649,13 +649,13 @@ create-storybook-project() {
 create-node-package() {
     local name="$1"
     local pm=$(detect_package_manager)
-    
+
     $pm init -y
     $pm install -D typescript @types/node tsx jest @types/jest ts-jest eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin prettier
-    
+
     # Create package structure
     mkdir -p src tests docs
-    
+
     # Create main library file
     cat > src/index.ts << 'EOF'
 /**
@@ -675,7 +675,7 @@ export default {
   add,
 };
 EOF
-    
+
     # Create test file
     cat > tests/index.test.ts << 'EOF'
 import { greet, add } from '../src/index';
@@ -690,7 +690,7 @@ describe('Library functions', () => {
   });
 });
 EOF
-    
+
     # Create comprehensive package.json for library
     npm pkg set main="dist/index.js"
     npm pkg set types="dist/index.d.ts"
@@ -702,7 +702,7 @@ EOF
     npm pkg set scripts.lint="eslint src/**/*.ts"
     npm pkg set scripts.format="prettier --write src/**/*.ts"
     npm pkg set scripts.prepublishOnly="npm run build"
-    
+
     # Create enhanced tsconfig for library
     cat > tsconfig.json << 'EOF'
 {
@@ -728,7 +728,7 @@ EOF
   "exclude": ["node_modules", "dist", "tests"]
 }
 EOF
-    
+
     echo "✅ Node.js library package created"
     echo "💡 Next steps: $pm run build && $pm test"
 }

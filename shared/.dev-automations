@@ -33,7 +33,7 @@ function init-project() {
     elif command -v yarn &> /dev/null; then
         pm="yarn"
     fi
-    
+
     echo "🚀 Creating $project_type project '$project_name' with $pm..."
     mkdir "$project_name"
     cd "$project_name"
@@ -58,7 +58,7 @@ function init-project() {
         "bun-server")
             create-bun-server-project "$project_name"
             ;;
-        
+
         # Frontend frameworks
         "react")
             create-react-project "$project_name"
@@ -81,7 +81,7 @@ function init-project() {
         "astro")
             create-astro-project "$project_name"
             ;;
-        
+
         # Fullstack frameworks
         "t3-stack"|"t3")
             create-t3-project "$project_name"
@@ -89,7 +89,7 @@ function init-project() {
         "remix")
             create-remix-project "$project_name"
             ;;
-        
+
         # Mobile & Desktop
         "react-native"|"rn")
             create-react-native-project "$project_name"
@@ -103,7 +103,7 @@ function init-project() {
         "tauri")
             create-tauri-project "$project_name"
             ;;
-        
+
         # Development tools
         "vite")
             create-vite-project "$project_name"
@@ -117,7 +117,7 @@ function init-project() {
         "node-package"|"package")
             create-node-package "$project_name"
             ;;
-        
+
         *)
             echo "❌ Unknown project type: $project_type"
             echo "Run 'init-project' without arguments to see available types."
@@ -134,7 +134,7 @@ function init-project() {
 post_project_setup() {
     local project_name="$1"
     local project_type="$2"
-    
+
     # Create common config files if they don't exist
     if [[ ! -f ".env.example" ]]; then
         cat > .env.example << 'EOF'
@@ -143,7 +143,7 @@ NODE_ENV=development
 PORT=3000
 EOF
     fi
-    
+
     if [[ ! -f ".gitignore" ]]; then
         cat > .gitignore << 'EOF'
 # Dependencies
@@ -271,23 +271,23 @@ build/
 *.tgz
 EOF
     fi
-    
+
     # Initialize git if not already done
     if [[ ! -d ".git" ]]; then
         git init
         echo "🔧 Initialized Git repository"
-        
+
         # Add all files and make initial commit
         git add .
         git commit -m "Initial commit: $project_type project setup"
         echo "📝 Created initial commit"
     fi
-    
+
     echo ""
     echo "🎉 Successfully created $project_type project '$project_name'!"
     echo "📁 Project location: $(pwd)"
     echo ""
-    
+
     # Show next steps based on project type
     case "$project_type" in
         "react"|"vue"|"svelte"|"angular"|"nextjs"|"nuxt"|"astro")

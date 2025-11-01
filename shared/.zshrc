@@ -238,3 +238,6 @@ compinit
 
 # Scaleway CLI autocomplete initialization.
 eval "$(scw autocomplete script shell=zsh)"
+
+# bun completions
+[ -s "/Users/alex/.bun/_bun" ] && source "/Users/alex/.bun/_bun"
