@@ -29,11 +29,10 @@ jobs:
             output: dist/ubuntu/dotfiles
             archive_name: dotfiles-linux-x64
             platform: linux
-          - os: ubuntu-latest
+          - os: ubuntu-latest-8-cores
             output: dist/ubuntu-arm/dotfiles
             archive_name: dotfiles-linux-arm64
             platform: linux
-            runs-on: ubuntu-latest-8-cores
 
     steps:
       - uses: actions/checkout@v5
