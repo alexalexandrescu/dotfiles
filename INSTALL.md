@@ -17,7 +17,7 @@ This will:
 
 ## Manual Installation
 
-### 1. Download the archive for your platform:
+### 1. Download the archive for your platform
 
 **macOS:**
 - Intel: `dotfiles-macos-x64.zip`
@@ -27,7 +27,7 @@ This will:
 - x64: `dotfiles-linux-x64.tar.gz`
 - ARM64: `dotfiles-linux-arm64.tar.gz`
 
-### 2. Extract the archive:
+### 2. Extract the archive
 
 **macOS (zip):**
 ```bash
@@ -39,7 +39,7 @@ unzip dotfiles-macos-arm64.zip
 tar -xzf dotfiles-linux-x64.tar.gz
 ```
 
-### 3. Make executable and run:
+### 3. Make executable and run
 
 ```bash
 chmod +x dotfiles

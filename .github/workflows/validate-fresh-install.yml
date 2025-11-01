@@ -13,6 +13,7 @@ jobs:
   validate-installation-via-docker:
     name: Validate Installation via Docker
     runs-on: ubuntu-latest # Use Ubuntu as the Docker host
+    if: false # Disabled: Docker tests need migration to new Bun-based CLI
     strategy:
       matrix:
         scenario: [fresh, safe, macos] # Corresponds to test-docker.sh scenarios

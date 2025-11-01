@@ -28,7 +28,7 @@
 - **`justfile`** - Command runner with convenient shortcuts
 
 ### Configuration
-- **`shared/`** - Cross-platform dotfiles 
+- **`shared/`** - Cross-platform dotfiles
 - **`macos/`** - macOS-specific configurations
 - **`ubuntu/`** - Ubuntu-specific configurations
 
@@ -48,7 +48,7 @@
 curl -fsSL https://raw.githubusercontent.com/alexalexandrescu/dotfiles/main/bootstrap.sh | bash
 ```
 
-This handles everything automatically! 
+This handles everything automatically!
 
 ## ⚡ Quick Commands (if `just` is installed)
 
@@ -61,4 +61,5 @@ just backup                                  # Create backup
 ```
 
 ---
-*Cleanup completed on $(date)*
+
+## Cleanup completed on $(date)

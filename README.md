@@ -100,19 +100,19 @@ config.json               # Consolidated configuration (validated with Zod)
 
 ### Key Features
 
-**1. Smart Symlink Management**
+#### 1. Smart Symlink Management
 - Won't overwrite application-managed configs
 - Skips recently modified files
 - Protects `.config/` directories
 - Clear warnings for skipped files
 
-**2. Dependency Checking**
+#### 2. Dependency Checking
 - Tiered dependency verification
 - Auto-installation with confirmation
 - Works without Git configured
 - Zero runtime dependencies
 
-**3. Multi-Platform Builds**
+#### 3. Multi-Platform Builds
 - macOS Intel (x64) + Apple Silicon (ARM64)
 - Linux Intel (x64) + ARM64
 - Self-contained executables
