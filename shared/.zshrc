@@ -1,59 +1,71 @@
 # Shared Zsh Configuration
 # Works across macOS and Ubuntu
 
-# Oh My Zsh configuration
+# Oh My Zsh configuration (only load if installed)
 export ZSH="$HOME/.oh-my-zsh"
 
-# Theme - powerlevel10k for better performance and features
-# Fallback to robbyrussell if p10k not available
-if [[ -d ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k ]]; then
-    ZSH_THEME="powerlevel10k/powerlevel10k"
+if [[ -d "$ZSH" ]]; then
+    # Theme - powerlevel10k for better performance and features
+    # Fallback to robbyrussell if p10k not available
+    if [[ -d ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k ]]; then
+        ZSH_THEME="powerlevel10k/powerlevel10k"
+    else
+        ZSH_THEME="robbyrussell"
+    fi
+
+    # Plugins - organized by category
+    plugins=(
+        # Core Oh My Zsh plugins
+        git
+        gitignore
+        history
+        sudo
+
+        # Node.js & TypeScript development
+        node
+        npm
+        yarn
+        nvm
+
+        # Docker & Infrastructure
+        docker
+        docker-compose
+
+        # Productivity
+        extract
+        web-search
+        copypath
+        copyfile
+
+        # External plugins (install separately)
+        zsh-autosuggestions
+        zsh-syntax-highlighting
+        zsh-completions
+    )
+
+    # Plugin configuration
+    ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#666666"
+    ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+
+    # Performance optimizations
+    DISABLE_AUTO_UPDATE="false"
+    DISABLE_UPDATE_PROMPT="false"
+    COMPLETION_WAITING_DOTS="true"
+    DISABLE_UNTRACKED_FILES_DIRTY="true"
+
+    # Load Oh My Zsh
+    if [[ -f "$ZSH/oh-my-zsh.sh" ]]; then
+        source "$ZSH/oh-my-zsh.sh"
+    fi
 else
-    ZSH_THEME="robbyrussell"
+    # Basic zsh setup when Oh My Zsh is not installed
+    # Enable basic history
+    HISTFILE=~/.zsh_history
+    HISTSIZE=10000
+    SAVEHIST=10000
+    setopt SHARE_HISTORY
+    setopt HIST_IGNORE_DUPS
 fi
-
-# Plugins - organized by category
-plugins=(
-    # Core Oh My Zsh plugins
-    git
-    gitignore
-    history
-    sudo
-
-    # Node.js & TypeScript development
-    node
-    npm
-    yarn
-    nvm
-
-    # Docker & Infrastructure
-    docker
-    docker-compose
-
-    # Productivity
-    extract
-    web-search
-    copypath
-    copyfile
-
-    # External plugins (install separately)
-    zsh-autosuggestions
-    zsh-syntax-highlighting
-    zsh-completions
-)
-
-# Plugin configuration
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#666666"
-ZSH_AUTOSUGGEST_STRATEGY=(history completion)
-
-# Performance optimizations
-DISABLE_AUTO_UPDATE="false"
-DISABLE_UPDATE_PROMPT="false"
-COMPLETION_WAITING_DOTS="true"
-DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Load Oh My Zsh
-source $ZSH/oh-my-zsh.sh
 
 # Environment Variables
 export EDITOR="cursor"

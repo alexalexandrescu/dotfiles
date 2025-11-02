@@ -135,8 +135,103 @@ export async function executeShellCommand(cmd: string, description: string): Pro
 }
 
 /**
+ * Clean up problematic patterns in existing shell configuration files
+ * This fixes common issues like unconditional command calls that should be conditional
+ */
+function cleanupShellConfig(content: string): string {
+  let cleaned = content;
+  const lines = cleaned.split('\n');
+  const cleanedLines: string[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+    
+    // Fix unconditional scw autocomplete calls
+    // Pattern: eval "$(scw autocomplete script shell=zsh)"
+    if (line.includes('scw autocomplete') && line.includes('eval') && !line.includes('command -v scw')) {
+      // Check if next few lines might already have a conditional
+      let hasConditional = false;
+      for (let j = Math.max(0, i - 2); j < Math.min(lines.length, i + 5); j++) {
+        if (lines[j].includes('command -v scw') || lines[j].includes('if command -v scw')) {
+          hasConditional = true;
+          break;
+        }
+      }
+      
+      if (!hasConditional) {
+        // Replace with conditional version
+        cleanedLines.push('# Scaleway CLI autocomplete (if installed)');
+        cleanedLines.push('if command -v scw &> /dev/null; then');
+        cleanedLines.push(`    ${line.trim()}`);
+        cleanedLines.push('fi');
+        i++;
+        continue;
+      }
+    }
+    
+    // Fix unconditional oh-my-zsh sourcing
+    // Pattern: source $ZSH/oh-my-zsh.sh or source ~/.oh-my-zsh/oh-my-zsh.sh
+    if ((line.includes('source') && (line.includes('oh-my-zsh.sh') || line.includes('$ZSH/oh-my-zsh.sh'))) 
+        && !line.includes('if') && !line.includes('[[ -f')) {
+      // Skip this line - it will be handled by our shared config conditionally
+      i++;
+      continue;
+    }
+    
+    // Keep other lines as-is
+    cleanedLines.push(line);
+    i++;
+  }
+  
+  return cleanedLines.join('\n');
+}
+
+/**
+ * Extract user customizations from existing content
+ * Separates content that should be preserved from dotfiles-managed content
+ */
+function extractUserCustomizations(content: string, sourceAbsolute: string): string {
+  // Remove dotfiles source lines if present
+  let cleaned = content;
+  const sourcePatterns = [
+    `source "${sourceAbsolute}"`,
+    `source ${sourceAbsolute}`,
+    '# Dotfiles configuration',
+  ];
+  
+  const lines = cleaned.split('\n');
+  const userLines: string[] = [];
+  let inDotfilesSection = false;
+  
+  for (const line of lines) {
+    // Detect dotfiles section markers
+    if (sourcePatterns.some(pattern => line.includes(pattern))) {
+      inDotfilesSection = true;
+      continue;
+    }
+    
+    // If we've passed the dotfiles section, keep everything else
+    if (inDotfilesSection && line.trim() === '') {
+      continue; // Skip empty lines after dotfiles section
+    }
+    
+    // Keep user customizations
+    userLines.push(line);
+  }
+  
+  // Clean up problematic patterns
+  const userContent = userLines.join('\n').trim();
+  return cleanupShellConfig(userContent);
+}
+
+/**
  * Create a sourceable file that imports from dotfiles
  * This allows other applications to append to the file without breaking it
+ * 
+ * Structure:
+ * 1. Dotfiles source (at the top, so shared config loads first)
+ * 2. User customizations (preserved from existing file, cleaned up)
  */
 export async function createSourceableFile(source: string, target: string, force: boolean): Promise<boolean> {
   const sourcePath = join(getProjectRoot(), source);
@@ -173,6 +268,26 @@ export async function createSourceableFile(source: string, target: string, force
         const sourceLine = `source "${sourceAbsolute}"`;
         
         if (content.includes(sourceLine) || content.includes(`source ${sourceAbsolute}`)) {
+          // File already sources dotfiles - verify it's at the top and clean up if needed
+          const lines = content.split('\n');
+          const sourceLineIndex = lines.findIndex(line => 
+            line.includes(sourceLine) || line.includes(`source ${sourceAbsolute}`)
+          );
+          
+          // If source line is not in the first 5 lines, we should reorganize
+          if (sourceLineIndex > 5) {
+            logger.info(`Reorganizing ${targetPath} to put dotfiles source at the top`);
+            const userContent = extractUserCustomizations(content, sourceAbsolute);
+            const isZshrc = target.includes(".zshrc");
+            const header = isZshrc 
+              ? `# Dotfiles configuration - loaded first\n${sourceLine}\n`
+              : `# Dotfiles configuration\n${sourceLine}\n`;
+            const footer = userContent ? `\n# User customizations (preserved from original file)\n${userContent}\n` : '';
+            await writeFile(targetPath, header + footer);
+            logger.success(`Reorganized sourceable file: ${targetPath}`);
+            return true;
+          }
+          
           logger.info(`File already sources dotfiles: ${targetPath}`);
           return true;
         }
@@ -199,34 +314,45 @@ export async function createSourceableFile(source: string, target: string, force
       await mkdir(targetDir, { recursive: true });
     }
 
-    // Preserve existing content if file exists (and wasn't a symlink we removed)
-    let existingContent = "";
+    // Extract and clean user customizations from existing file
+    let userCustomizations = "";
     if (existsSync(targetPath)) {
       const currentStats = await lstat(targetPath);
       if (currentStats.isFile()) {
         const content = readFileSync(targetPath, "utf-8");
-        // Only preserve if it doesn't already source our file
+        // Extract user customizations (removes dotfiles sections and cleans up)
         if (!content.includes(sourceAbsolute)) {
-          existingContent = content.trim();
-          if (existingContent && !existingContent.endsWith("\n")) {
-            existingContent += "\n";
-          }
+          userCustomizations = extractUserCustomizations(content, sourceAbsolute);
         }
       }
     }
     
-    // Create sourceable file content
-    // Check file extension to use appropriate sourcing command
+    // Create sourceable file content with source line at the TOP
+    // This ensures shared config loads first and can set up proper conditionals
     const isZshrc = target.includes(".zshrc");
-    const sourceCommand = isZshrc ? `source "${sourceAbsolute}"` : `source "${sourceAbsolute}"`;
+    const sourceCommand = `source "${sourceAbsolute}"`;
     
-    // Write the sourceable file
-    const fileContent = existingContent 
-      ? `${existingContent}\n# Dotfiles configuration\n${sourceCommand}\n`
-      : `# Dotfiles configuration\n${sourceCommand}\n`;
+    // Build file content: source line first, then user customizations
+    let fileContent = `# Dotfiles configuration\n`;
+    fileContent += `# This file sources the shared dotfiles configuration\n`;
+    fileContent += `# Add your customizations below after this section\n\n`;
+    fileContent += `${sourceCommand}\n`;
+    
+    if (userCustomizations) {
+      fileContent += `\n# ============================================\n`;
+      fileContent += `# User customizations (preserved from original file)\n`;
+      fileContent += `# ============================================\n`;
+      fileContent += `${userCustomizations}\n`;
+    }
     
     await writeFile(targetPath, fileContent);
     logger.success(`Created sourceable file: ${targetPath} -> sources ${sourceAbsolute}`);
+    
+    // Log if we fixed any issues
+    if (userCustomizations && userCustomizations.includes('if command -v scw')) {
+      logger.info(`Fixed problematic patterns in ${targetPath}`);
+    }
+    
     return true;
   } catch (error) {
     logger.error(`Failed to create sourceable file ${targetPath}: ${error}`);
