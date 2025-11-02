@@ -75,6 +75,10 @@ Interactive mode that:
 ### Install Packages
 
 ```bash
+# Always preview first with --dry-run
+./dotfiles packages --dry-run typescript modern_cli
+
+# Then install if preview looks good
 ./dotfiles packages typescript modern_cli
 ```
 

@@ -126,8 +126,8 @@ dotfiles bootstrap
 # Install dotfiles (existing systems)
 dotfiles install [--safe]
 
-# Install packages from categories
-dotfiles packages [categories]
+# Install packages from categories (use --dry-run first!)
+dotfiles packages [categories] [--dry-run]
 
 # Update all tools
 dotfiles sync

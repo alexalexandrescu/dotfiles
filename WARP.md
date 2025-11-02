@@ -16,9 +16,10 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 ./dist/dotfiles install          # Full installation
 ./dist/dotfiles install --safe   # Safe installation (preserves existing configs)
 
-# Install specific package categories
-./dist/dotfiles packages modern_cli typescript
-./dist/dotfiles packages --optional modern_cli  # Include optional tools
+# Install specific package categories (always use --dry-run first!)
+./dist/dotfiles packages --dry-run modern_cli typescript  # Preview what would be installed
+./dist/dotfiles packages modern_cli typescript              # Actually install
+./dist/dotfiles packages --optional modern_cli              # Include optional tools
 ```
 
 ### Testing and Validation

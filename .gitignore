@@ -7,6 +7,25 @@ dist/
 *.backup.*
 .dotfiles-backup-*
 
+# Bun build artifacts
+*.bun-build
+=*
+
 # Compiled executables
 *.exe
 dotfiles
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/

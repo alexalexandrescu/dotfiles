@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "bun run build:mac && bun run build:ubuntu",
-    "build:mac": "mkdir -p dist/mac dist/mac-arm && bun build --compile --minify src/cli.ts --outfile dist/mac/dotfiles && bun build --compile --minify src/cli.ts --outfile dist/mac-arm/dotfiles",
-    "build:ubuntu": "mkdir -p dist/ubuntu dist/ubuntu-arm && bun build --compile --minify src/cli.ts --outfile dist/ubuntu/dotfiles && bun build --compile --minify src/cli.ts --outfile dist/ubuntu-arm/dotfiles",
-    "build:local": "mkdir -p dist && bun build --compile --minify src/cli.ts --outfile dist/dotfiles",
+    "build:mac": "mkdir -p dist/mac dist/mac-arm && bun build --compile --minify src/cli.ts --outfile dist/mac/dotfiles && bun build --compile --minify src/cli.ts --outfile dist/mac-arm/dotfiles && cp config.json dist/mac/ && cp config.json dist/mac-arm/",
+    "build:ubuntu": "mkdir -p dist/ubuntu dist/ubuntu-arm && bun build --compile --minify src/cli.ts --outfile dist/ubuntu/dotfiles && bun build --compile --minify src/cli.ts --outfile dist/ubuntu-arm/dotfiles && cp config.json dist/ubuntu/ && cp config.json dist/ubuntu-arm/",
+    "build:local": "mkdir -p dist && bun build --compile --minify src/cli.ts --outfile dist/dotfiles && cp config.json dist/",
     "dev": "bun run src/cli.ts",
     "test": "bun test",
     "typecheck": "tsc --noEmit"

@@ -58,7 +58,10 @@ curl -L -o dotfiles https://github.com/user/dotfiles/releases/download/v2.0.0/do
 # Make executable
 chmod +x dotfiles
 
-# Run
+# Test (dry-run mode to preview changes)
 ./dotfiles --help
+./dotfiles packages --dry-run
+
+# Run actual commands
 ./dotfiles bootstrap
 ```

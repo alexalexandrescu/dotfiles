@@ -122,7 +122,8 @@ Then download the matching archive.
 After bootstrap:
 1. Configure Powerlevel10k: `p10k configure`
 2. Test your setup: `./dotfiles test`
-3. Install more packages: `./dotfiles packages modern_cli`
+3. Preview packages: `./dotfiles packages --dry-run modern_cli`
+4. Install packages: `./dotfiles packages modern_cli`
 4. Sync updates: `./dotfiles sync`
 
 Enjoy your new development environment! 🚀
