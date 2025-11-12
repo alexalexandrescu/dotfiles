@@ -13,11 +13,8 @@
     "clean": ["~"],
     "links": {
       "~/.zshrc": "shared/.zshrc",
-      "~/.p10k.zsh": "shared/.p10k.zsh",
       "~/.aliases": "shared/.aliases",
       "~/.modern-aliases": "shared/.modern-aliases",
-      "~/.dev-automations": "shared/.dev-automations",
-      "~/.project-templates": "shared/.project-templates",
       "~/.env-detection": "shared/.env-detection",
       "~/.gitconfig": "shared/.gitconfig",
       "~/.gitignore_global": "shared/.gitignore_global",
@@ -25,14 +22,10 @@
       "~/.nvmrc": "shared/.nvmrc",
       "~/.vimrc": "shared/.vimrc",
       "~/.tmux.conf": "shared/.tmux.conf",
-      "~/.config/micro/settings.json": "shared/.microrc",
-      "~/.vscode/settings.json": "shared/.vscode/settings.json",
-      "~/.cursor/settings.json": "shared/.cursor/settings.json"
+      "~/.config/micro/settings.json": "shared/.microrc"
     },
     "directories": [
-      "~/.config/micro",
-      "~/.vscode",
-      "~/.cursor"
+      "~/.config/micro"
     ],
     "shell_commands": [
       {
@@ -47,24 +40,15 @@
       "priority": 1,
       "packages": [
         {
-          "name": "oh-my-zsh",
-          "macos": null,
-          "ubuntu": null,
-          "description": "Oh My Zsh framework for zsh configuration",
-          "required": true
-        },
-        {
           "name": "git",
           "macos": "git",
           "ubuntu": "git",
-          "version_constraint": ">=2.30.0",
           "required": true
         },
         {
           "name": "curl",
           "macos": "curl",
           "ubuntu": "curl",
-          "version_constraint": ">=7.68.0",
           "required": true
         },
         {
@@ -77,7 +61,6 @@
           "name": "jq",
           "macos": "jq",
           "ubuntu": "jq",
-          "version_constraint": ">=1.6",
           "required": true
         },
         {
@@ -85,81 +68,45 @@
           "macos": "tree",
           "ubuntu": "tree",
           "required": false
-        },
-        {
-          "name": "htop",
-          "macos": "htop",
-          "ubuntu": "htop",
-          "required": false
         }
       ]
     },
-    "typescript": {
-      "description": "TypeScript development tools",
+    "runtime": {
+      "description": "Language runtimes and package managers",
       "priority": 2,
       "packages": [
         {
           "name": "nvm",
           "macos": null,
           "ubuntu": null,
-          "description": "Node Version Manager - enables multiple Node.js versions",
-          "required": false
-        },
-        {
-          "name": "node",
-          "macos": "node@lts",
-          "ubuntu": "nodejs",
-          "version_constraint": ">=18.0.0",
-          "post_install": ["npm install -g npm@latest"],
+          "description": "Node Version Manager",
           "required": true
-        },
-        {
-          "name": "typescript",
-          "global_npm": "typescript",
-          "version_constraint": ">=4.9.0",
-          "required": true
-        },
-        {
-          "name": "ts-node",
-          "global_npm": "ts-node",
-          "version_constraint": ">=10.0.0",
-          "required": true
-        },
-        {
-          "name": "nodemon",
-          "global_npm": "nodemon",
-          "version_constraint": ">=2.0.0",
-          "required": false
         },
         {
           "name": "bun",
           "macos": "bun",
           "ubuntu": "bun",
-          "version_constraint": ">=1.0.0",
-          "required": false,
-          "post_install": ["bun completions"]
+          "description": "Fast JavaScript runtime and toolkit",
+          "required": true
         }
       ]
     },
     "modern_cli": {
-      "description": "Modern CLI replacements and enhancements",
+      "description": "Modern CLI tools",
       "priority": 3,
       "packages": [
         {
           "name": "ripgrep",
           "macos": "ripgrep",
           "ubuntu": "ripgrep",
-          "description": "Ultra-fast text search",
-          "version_constraint": ">=13.0.0",
-          "post_install": ["rg --generate complete-zsh > ~/.local/share/zsh/completions/_rg"],
+          "description": "Fast text search (rg)",
           "required": true
         },
         {
           "name": "fd",
           "macos": "fd",
           "ubuntu": "fd-find",
-          "description": "Modern find replacement",
-          "version_constraint": ">=8.0.0",
+          "description": "Fast file finder",
           "required": true
         },
         {
@@ -167,16 +114,13 @@
           "macos": "bat",
           "ubuntu": "bat",
           "description": "cat with syntax highlighting",
-          "version_constraint": ">=0.20.0",
-          "post_install": ["bat cache --build"],
           "required": true
         },
         {
           "name": "eza",
           "macos": "eza",
           "ubuntu": "eza",
-          "description": "Modern ls replacement (exa successor)",
-          "version_constraint": ">=0.10.0",
+          "description": "Modern ls alternative",
           "fallback": {
             "macos": "exa",
             "ubuntu": "exa"
@@ -187,17 +131,14 @@
           "name": "fzf",
           "macos": "fzf",
           "ubuntu": "fzf",
-          "description": "Fuzzy finder for files/commands",
-          "version_constraint": ">=0.35.0",
-          "post_install": ["$(brew --prefix)/opt/fzf/install --all"],
+          "description": "Fuzzy finder",
           "required": true
         },
         {
           "name": "zoxide",
           "macos": "zoxide",
           "ubuntu": "zoxide",
-          "description": "Smart directory navigator",
-          "version_constraint": ">=0.8.0",
+          "description": "Smart cd (z)",
           "required": true
         },
         {
@@ -205,35 +146,26 @@
           "macos": "starship",
           "ubuntu": "starship",
           "description": "Cross-shell prompt",
-          "version_constraint": ">=1.10.0",
-          "required": false
+          "required": true
         },
         {
           "name": "direnv",
           "macos": "direnv",
           "ubuntu": "direnv",
           "description": "Environment switcher",
-          "version_constraint": ">=2.30.0",
           "required": false
-        },
-        {
-          "name": "tldr",
-          "macos": "tldr",
-          "ubuntu": "tldr",
-          "description": "Simplified man pages",
-          "required": false,
-          "post_install": ["tldr --update"]
         }
       ]
     },
     "docker": {
       "description": "Container development",
+      "priority": 4,
       "packages": [
         {
           "name": "docker",
           "macos": null,
           "ubuntu": "docker.io",
-          "description": "Docker CLI (included in Docker Desktop on macOS)",
+          "description": "Docker CLI (install Docker Desktop on macOS)",
           "platform_specific": true
         },
         {
@@ -247,138 +179,31 @@
     },
     "productivity": {
       "description": "Productivity tools",
+      "priority": 5,
       "packages": [
         {
           "name": "tmux",
           "macos": "tmux",
-          "ubuntu": "tmux"
-        },
-        {
-          "name": "nano",
-          "macos": "nano",
-          "ubuntu": "nano",
-          "description": "Simple terminal text editor"
+          "ubuntu": "tmux",
+          "description": "Terminal multiplexer"
         },
         {
           "name": "micro",
           "macos": "micro",
           "ubuntu": "micro",
-          "description": "Modern terminal editor (vim alternative)"
-        }
-      ]
-    },
-    "developer_tools": {
-      "description": "Advanced developer utilities",
-      "packages": [
+          "description": "Modern terminal editor"
+        },
         {
-          "name": "git-extras",
-          "macos": "git-extras",
-          "ubuntu": "git-extras",
-          "description": "Advanced Git utilities"
+          "name": "lazygit",
+          "macos": "lazygit",
+          "ubuntu": "lazygit",
+          "description": "Git TUI"
         },
         {
           "name": "gh",
           "macos": "gh",
           "ubuntu": "gh",
           "description": "GitHub CLI"
-        },
-        {
-          "name": "just",
-          "macos": "just",
-          "ubuntu": "just",
-          "description": "Command runner"
-        },
-        {
-          "name": "navi",
-          "macos": "navi",
-          "ubuntu": "navi",
-          "description": "Interactive cheatsheets"
-        },
-        {
-          "name": "hyperfine",
-          "macos": "hyperfine",
-          "ubuntu": "hyperfine",
-          "description": "Command-line benchmarking"
-        }
-      ]
-    },
-    "gui_applications": {
-      "description": "GUI applications (desktop environment required)",
-      "priority": 10,
-      "condition": "desktop_environment",
-      "packages": [
-        {
-          "name": "cursor",
-          "macos": "cursor",
-          "ubuntu": null,
-          "description": "AI-powered code editor",
-          "platform_specific": true,
-          "cask": true,
-          "required": false
-        },
-        {
-          "name": "visual-studio-code",
-          "macos": "visual-studio-code",
-          "ubuntu": "code",
-          "description": "Microsoft code editor",
-          "cask": true,
-          "required": false
-        },
-        {
-          "name": "docker-desktop",
-          "macos": "docker",
-          "ubuntu": null,
-          "description": "Docker Desktop GUI (includes docker CLI and docker-compose)",
-          "platform_specific": true,
-          "cask": true,
-          "required": false
-        },
-        {
-          "name": "iterm2",
-          "macos": "iterm2",
-          "ubuntu": null,
-          "description": "Enhanced terminal for macOS",
-          "platform_specific": true,
-          "cask": true,
-          "required": false
-        }
-      ]
-    },
-    "optional": {
-      "description": "Optional tools (install with --optional flag)",
-      "priority": 9,
-      "packages": [
-        {
-          "name": "lazygit",
-          "macos": "lazygit",
-          "ubuntu": "lazygit",
-          "optional": true,
-          "description": "Git TUI",
-          "version_constraint": ">=0.35.0"
-        },
-        {
-          "name": "httpie",
-          "macos": "httpie",
-          "ubuntu": "httpie",
-          "optional": true,
-          "description": "HTTP client",
-          "version_constraint": ">=3.0.0"
-        },
-        {
-          "name": "glances",
-          "macos": "glances",
-          "ubuntu": "glances",
-          "optional": true,
-          "description": "System monitor",
-          "version_constraint": ">=3.3.0"
-        },
-        {
-          "name": "bandwhich",
-          "macos": "bandwhich",
-          "ubuntu": "bandwhich",
-          "optional": true,
-          "description": "Network monitor",
-          "version_constraint": ">=0.20.0"
         }
       ]
     }

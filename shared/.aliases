@@ -1,102 +1,73 @@
-# Smart Aliases and Functions for TypeScript Development
-
-# Project creation shortcuts
-function create-ts-project() {
-    local project_name="$1"
-    if [ -z "$project_name" ]; then
-        echo "Usage: create-ts-project <project-name>"
-        return 1
-    fi
-
-    mkdir "$project_name"
-    cd "$project_name"
-
-    # Initialize with bun (faster) or npm as fallback
-    if command -v bun &> /dev/null; then
-        bun init -y
-        bun add -d typescript @types/node ts-node nodemon
-    else
-        npm init -y
-        npm install -D typescript @types/node ts-node nodemon
-    fi
-
-    # Create basic structure
-    mkdir -p src tests
-    echo 'console.log("Hello TypeScript!");' > src/index.ts
-
-    # Create tsconfig.json
-    npx tsc --init
-
-    # Create basic package.json scripts
-    npm pkg set scripts.dev="ts-node src/index.ts"
-    npm pkg set scripts.build="tsc"
-    npm pkg set scripts.start="node dist/index.js"
-    npm pkg set scripts.test="echo \"No tests yet\""
-
-    echo "✅ TypeScript project '$project_name' created!"
-    echo "Run: cd $project_name && npm run dev"
-}
-
-# Docker development shortcuts
-function docker-dev() {
-    if [ ! -f "docker-compose.yml" ]; then
-        echo "No docker-compose.yml found in current directory"
-        return 1
-    fi
-    docker-compose up --build
-}
-
-function docker-logs() {
-    if [ -z "$1" ]; then
-        docker-compose logs -f
-    else
-        docker-compose logs -f "$1"
-    fi
-}
-
-# Environment management
-function load-env() {
-    if [ -f .env ]; then
-        export $(cat .env | xargs)
-        echo "✅ Environment variables loaded from .env"
-    else
-        echo "❌ No .env file found"
-    fi
-}
+# Core Aliases and Development Functions
 
 # Git workflow shortcuts
-function git-feature() {
-    local branch_name="$1"
-    if [ -z "$branch_name" ]; then
-        echo "Usage: git-feature <branch-name>"
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit'
+alias gp='git push'
+alias gl='git log --oneline -10'
+alias gd='git diff'
+
+# Quick commit with conventional commit format
+function quick-commit() {
+    local type="$1"
+    local message="$2"
+
+    if [ -z "$type" ] || [ -z "$message" ]; then
+        echo "Usage: quick-commit <type> <message>"
+        echo "Types: feat, fix, docs, style, refactor, test, chore"
         return 1
     fi
-    git checkout -b "feature/$branch_name"
+
+    git add .
+    git commit -m "$type: $message"
+    echo "✅ Committed: $type: $message"
 }
 
-function git-hotfix() {
-    local branch_name="$1"
-    if [ -z "$branch_name" ]; then
-        echo "Usage: git-hotfix <branch-name>"
-        return 1
-    fi
-    git checkout -b "hotfix/$branch_name"
-}
-
+# Clean merged branches
 function git-clean-branches() {
     git branch --merged | grep -v "\*\|main\|master" | xargs -n 1 git branch -d
 }
 
-# Node.js version management
-function use-node() {
-    if [ -f .nvmrc ]; then
-        nvm use
+# Package management - smart installer that detects package manager
+function smart-install() {
+    local package="$1"
+    local dev_flag="$2"
+
+    if [ -z "$package" ]; then
+        echo "Usage: smart-install <package> [--dev]"
+        return 1
+    fi
+
+    # Detect package manager by lockfile
+    if [ -f "bun.lockb" ] && command -v bun &> /dev/null; then
+        if [ "$dev_flag" = "--dev" ]; then
+            bun add -d "$package"
+        else
+            bun add "$package"
+        fi
+    elif [ -f "pnpm-lock.yaml" ] && command -v pnpm &> /dev/null; then
+        if [ "$dev_flag" = "--dev" ]; then
+            pnpm add -D "$package"
+        else
+            pnpm add "$package"
+        fi
+    elif [ -f "yarn.lock" ] && command -v yarn &> /dev/null; then
+        if [ "$dev_flag" = "--dev" ]; then
+            yarn add -D "$package"
+        else
+            yarn add "$package"
+        fi
     else
-        nvm use lts/*
+        if [ "$dev_flag" = "--dev" ]; then
+            npm install -D "$package"
+        else
+            npm install "$package"
+        fi
     fi
 }
 
-# Package management shortcuts
+# Fresh install - remove node_modules and reinstall
 function npm-fresh() {
     rm -rf node_modules package-lock.json
     npm install
@@ -107,7 +78,30 @@ function bun-fresh() {
     bun install
 }
 
-# Development server shortcuts
+# Project health check
+function project-health() {
+    echo "🔍 Checking project health..."
+
+    if [ ! -f "package.json" ]; then
+        echo "❌ No package.json found"
+        return 1
+    fi
+
+    echo "📦 Checking for outdated dependencies..."
+    npm outdated
+
+    echo "🔒 Security audit..."
+    npm audit --audit-level moderate
+
+    if [ -f "tsconfig.json" ]; then
+        echo "🔧 TypeScript check..."
+        npx tsc --noEmit
+    fi
+
+    echo "✅ Health check complete"
+}
+
+# Development server - smart detection
 function dev() {
     if [ -f "package.json" ]; then
         if grep -q '"dev"' package.json; then
@@ -130,37 +124,6 @@ function dev() {
     fi
 }
 
-# Testing shortcuts
-function test-watch() {
-    if command -v bun &> /dev/null && [ -f "bun.lockb" ]; then
-        bun test --watch
-    else
-        npm test -- --watch
-    fi
-}
-
-# Utility functions
-function port-in-use() {
-    local port="$1"
-    if [ -z "$port" ]; then
-        echo "Usage: port-in-use <port>"
-        return 1
-    fi
-    lsof -ti:"$port"
-}
-
-function json-pretty() {
-    if [ -f "$1" ]; then
-        cat "$1" | jq .
-    else
-        echo "$1" | jq .
-    fi
-}
-
-# Claude Code integration
-alias claude='claude-code'
-alias cc='claude-code'
-
 # Quick project navigation
 function p() {
     cd ~/Projects/"$1"
@@ -168,18 +131,20 @@ function p() {
 
 # Completion for p function (if Projects directory exists)
 if [ -d ~/Projects ]; then
-    # Bash completion
-    if [ -n "${BASH_VERSION:-}" ]; then
-        _p() {
-            local cur=${COMP_WORDS[COMP_CWORD]}
-            COMPREPLY=( $(compgen -W "$(ls ~/Projects)" -- $cur) )
-        }
-        complete -F _p p
-    # Zsh completion
-    elif [ -n "${ZSH_VERSION:-}" ] && command -v compdef >/dev/null 2>&1; then
+    if [ -n "${ZSH_VERSION:-}" ] && command -v compdef >/dev/null 2>&1; then
         _p() {
             compadd $(ls ~/Projects)
         }
         compdef _p p
     fi
 fi
+
+# Environment management
+function load-env() {
+    if [ -f .env ]; then
+        export $(cat .env | xargs)
+        echo "✅ Environment variables loaded from .env"
+    else
+        echo "❌ No .env file found"
+    fi
+}
