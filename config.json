@@ -18,14 +18,19 @@
       "~/.env-detection": "shared/.env-detection",
       "~/.gitconfig": "shared/.gitconfig",
       "~/.gitignore_global": "shared/.gitignore_global",
+      "~/.gitmessage": "shared/.gitmessage",
       "~/.npmrc": "shared/.npmrc",
       "~/.nvmrc": "shared/.nvmrc",
       "~/.vimrc": "shared/.vimrc",
       "~/.tmux.conf": "shared/.tmux.conf",
-      "~/.config/micro/settings.json": "shared/.microrc"
+      "~/.inputrc": "shared/.inputrc",
+      "~/.editorconfig": "shared/.editorconfig",
+      "~/.config/micro/settings.json": "shared/.microrc",
+      "~/.config/starship.toml": "shared/starship.toml"
     },
     "directories": [
-      "~/.config/micro"
+      "~/.config/micro",
+      "~/.config"
     ],
     "shell_commands": [
       {

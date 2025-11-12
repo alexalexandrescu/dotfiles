@@ -1,16 +1,19 @@
 [user]
     # Update these with your actual details
     name = Alex Alexandrescu
-	email = alexandrescu.alex@pm.me
+    email = alexandrescu.alex@pm.me
 
 [core]
     editor = micro
     autocrlf = input
     pager = less -F -X
-	excludesfile = /Users/alex/.gitignore_global
+    excludesfile = ~/.gitignore_global
 
 [init]
     defaultBranch = main
+
+[commit]
+    template = ~/.gitmessage
 
 [push]
     default = simple

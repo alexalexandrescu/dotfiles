@@ -1,25 +1,27 @@
-# 🚀 Ultimate TypeScript Developer Dotfiles
+# 🚀 Portable Dotfiles
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Ubuntu-blue)](https://github.com/alexalexandrescu/dotfiles)
 
 **⚠️ DISCLAIMER: This is a public repository. Use at your own risk. Always review code before running on your system. Backup your existing configurations before installation.**
 
-My personal dotfiles configuration optimized for TypeScript development across macOS and Ubuntu environments, enhanced with the best tools from the awesome developer community.
+A minimal, portable dotfiles configuration that works seamlessly across macOS and Ubuntu environments. Built with TypeScript + Bun for a fast, self-contained CLI tool with no runtime dependencies.
 
-**✨ NEW: Built with TypeScript + Bun** - A single, self-contained executable with no runtime dependencies!
+**✨ Key Features:**
+- 🎯 **Truly Portable** - No hardcoded paths, works across different usernames and systems
+- ⚡ **Modern CLI Tools** - Enhanced productivity without breaking system commands
+- 🎨 **Starship Prompt** - Fast, informative, cross-shell prompt
+- 🔧 **Smart Detection** - Automatically adapts to your environment
+- 📦 **Zero Dependencies** - Single executable, no runtime requirements
 
 ## 📋 Table of Contents
 
 - [Quick Installation](#-quick-installation)
-- [Zero-Config Setup](#-zero-config-setup)
-- [Architecture](#-architecture)
-- [What's Included](#%EF%B8%8F-whats-included)
+- [What's Included](#-whats-included)
+- [Portability Features](#-portability-features)
 - [CLI Commands](#-cli-commands)
-- [Installation Options](#-installation-options)
 - [Tool Usage Guide](#-tool-usage-guide)
 - [Maintenance](#-maintenance)
-- [Troubleshooting](#-troubleshooting)
 
 ## 🚀 Quick Installation
 
@@ -36,8 +38,6 @@ This will:
 - Detect your platform (macOS/Linux, Intel/ARM)
 - Download the correct executable
 - Set up your complete development environment
-
-See [INSTALL.md](INSTALL.md) for detailed installation instructions.
 
 ### 🛠️ Development Setup
 
@@ -57,65 +57,122 @@ bun run build:local
 ./dist/dotfiles bootstrap
 ```
 
+## 📦 What's Included
+
+### Core Development Tools
+- **Git** - Version control with sensible defaults
+- **NVM** - Node Version Manager for JavaScript projects
+- **Bun** - Fast JavaScript runtime and toolkit
+- **Docker** - Container development
+
+### Modern CLI Tools (Safe Alternatives)
+These tools enhance your workflow WITHOUT breaking system commands:
+
+- **ripgrep (rg)** - Fast text search → use `search <pattern>`
+- **fd** - Fast file finder → use `ff <pattern>`
+- **bat** - Syntax-highlighted cat → use `bcat`
+- **eza** - Modern ls with icons → use `ll`, `lt`
+- **fzf** - Fuzzy finder → `Ctrl+R` for history, `fo` to open files
+- **zoxide** - Smart cd → `z <dir>` learns your habits
+- **Starship** - Fast, minimal prompt with Git status
+- **direnv** - Auto-load environment variables per directory
+
+### Productivity Tools
+- **tmux** - Terminal multiplexer with vim bindings
+- **micro** - Modern terminal editor (easier than vim)
+- **lazygit** - Beautiful Git TUI
+- **gh** - GitHub CLI
+
+### Shell Enhancements
+
+**Smart Functions:**
+```bash
+smart-install express          # Auto-detect package manager (bun/pnpm/npm)
+project-health                 # Check dependencies, security, TypeScript
+quick-commit feat "message"    # Conventional commits helper
+dev                            # Smart dev server detection
+npm-fresh / bun-fresh          # Clean reinstall
+p <project-name>               # Quick jump to ~/Projects
+load-env                       # Load .env file into environment
+```
+
+**Git Shortcuts:**
+```bash
+gs    # git status
+ga    # git add
+gc    # git commit (opens template)
+gp    # git push
+gl    # git log --oneline -10
+gd    # git diff
+```
+
+**Useful Aliases:**
+```bash
+ll    # Detailed file list with icons (eza)
+lt    # Tree view (eza)
+..    # cd ..
+...   # cd ../..
+```
+
+## 🌍 Portability Features
+
+### No Hardcoded Paths
+- All paths use `~` for home directory
+- Works with any username
+- Platform detection for OS-specific behavior
+
+### Cross-Platform Clipboard
+- macOS: Uses `pbcopy`/`pbpaste`
+- Linux: Falls back to `xclip` or `xsel`
+- Tmux copy-mode works everywhere
+
+### Smart Environment Detection
+```bash
+is_container    # Detect if running in Docker
+is_wsl          # Detect Windows Subsystem for Linux
+is_ssh          # Detect SSH session
+is_vm           # Detect virtual machine
+get_os          # Returns "macos" or "linux"
+```
+
+### Platform-Specific Configs
+- `macos/.zshrc.local` - Homebrew, macOS-specific aliases
+- `ubuntu/.zshrc.local` - APT, Ubuntu-specific aliases
+- Automatically loaded based on detected OS
+
+### Consistent Coding Standards
+- **`.editorconfig`** - Consistent formatting across all editors
+- **`.inputrc`** - Better command-line editing (readline)
+- **`.gitmessage`** - Conventional commit template
+
 ## 🏗️ Architecture
 
-This project has been completely refactored from bash to TypeScript:
-
-### Technology Stack
-- **TypeScript** - Full type safety
-- **Bun** - Fast runtime and build tool
-- **Zod** - Runtime validation
-- **Commander** - CLI framework
-- **Inquirer** - Interactive prompts
-- **Chalk** - Colored output
-
-### Project Structure
+Built with modern TypeScript:
 
 ```
 src/
 ├── cli.ts                 # Main entry point
-├── config/                # Configuration system
-│   ├── schema.ts         # Zod schemas
-│   ├── loader.ts         # Config loading
-│   └── types.ts          # TypeScript types
+├── config/                # Configuration system with Zod validation
 ├── commands/              # All CLI commands
 │   ├── bootstrap.ts      # Full environment setup
-│   ├── install.ts        # Installation
+│   ├── install.ts        # Safe installation
 │   ├── packages.ts       # Package management
-│   ├── sync.ts           # Sync updates
-│   ├── backup.ts         # Backup configs
-│   └── test.ts           # Test suite
+│   └── sync.ts           # Update all tools
 ├── core/                  # Core functionality
 │   ├── dependencies.ts   # Dependency checking
 │   ├── package-manager.ts # Package installation
 │   ├── platform.ts       # OS detection
-│   └── symlinks.ts       # Symlink management
+│   └── symlinks.ts       # Smart symlink management
 └── utils/                 # Utilities
-    ├── logger.ts         # Logging
-    ├── spinner.ts        # Progress
-    └── prompt.ts         # Prompts
 
-config.json               # Consolidated configuration (validated with Zod)
+config.json               # Single source of truth (validated with Zod)
 ```
 
-### Key Features
-
-#### 1. Smart Symlink Management
+### Smart Symlink Management
 - Won't overwrite application-managed configs
 - Skips recently modified files
 - Protects `.config/` directories
 - Clear warnings for skipped files
-
-#### 2. Dependency Checking
-- Tiered dependency verification
-- Auto-installation with confirmation
-- Works without Git configured
-- Zero runtime dependencies
-
-#### 3. Multi-Platform Builds
-- macOS Intel (x64) + Apple Silicon (ARM64)
-- Linux Intel (x64) + ARM64
-- Self-contained executables
 
 ## 📋 CLI Commands
 
@@ -126,7 +183,7 @@ dotfiles bootstrap
 # Install dotfiles (existing systems)
 dotfiles install [--safe]
 
-# Install packages from categories (use --dry-run first!)
+# Install packages from categories
 dotfiles packages [categories] [--dry-run]
 
 # Update all tools
@@ -143,49 +200,6 @@ dotfiles check-deps
 
 # Show help
 dotfiles --help
-```
-
-## 📦 What's Included
-
-### Core Development Tools
-- **Git** - Version control
-- **Node.js** - JavaScript runtime (via NVM)
-- **Bun** - Fast JavaScript runtime
-- **TypeScript** - Type-safe JavaScript
-
-### Modern CLI Tools
-- **ripgrep** - Fast text search
-- **fd** - Modern find replacement
-- **bat** - Syntax-highlighted cat
-- **eza** - Modern ls replacement
-- **fzf** - Fuzzy finder
-- **zoxide** - Smart cd
-- **starship** - Cross-shell prompt
-- **direnv** - Environment switcher
-
-### Developer Utilities
-- **git-extras** - Advanced Git tools
-- **gh** - GitHub CLI
-- **just** - Command runner
-- **hyperfine** - Benchmarking
-- **tmux** - Terminal multiplexer
-- **micro** - Terminal editor
-
-### Development Functions
-
-#### Project Creation
-```bash
-create-ts-project my-app      # TypeScript project with proper setup
-init-project react my-app      # Create React/Next.js/Express projects
-smart-install express          # Auto-detect package manager
-```
-
-#### Workflow
-```bash
-project-health                 # Check dependencies, TypeScript compilation
-quick-commit feat "message"    # Conventional commits
-switch-node                    # Use .nvmrc or LTS
-bench-cmd "ls -la"            # Benchmark command execution
 ```
 
 ## 🛠️ Installation Options
@@ -205,7 +219,7 @@ Interactive mode preserving existing configs:
 ### Package-Only Installation
 Install modern CLI tools without configs:
 ```bash
-./dotfiles packages modern_cli developer_tools
+./dotfiles packages modern_cli productivity
 ```
 
 ### Preview Installation
@@ -218,6 +232,8 @@ See what would be installed:
 
 ### Update Dotfiles
 ```bash
+cd ~/dotfiles
+git pull
 ./dotfiles sync
 ```
 
@@ -231,10 +247,24 @@ See what would be installed:
 ./dotfiles test
 ```
 
-### Check Dependencies
+## 🎨 Customization
+
+### Starship Prompt
+Edit `~/.config/starship.toml` to customize your prompt:
 ```bash
-./dotfiles check-deps
+micro ~/.config/starship.toml
 ```
+
+### Git Configuration
+Edit `~/.gitconfig` to add your name/email:
+```bash
+micro ~/.gitconfig
+```
+
+### Platform-Specific Aliases
+Add custom aliases to:
+- macOS: `macos/.zshrc.local`
+- Ubuntu: `ubuntu/.zshrc.local`
 
 ## 🚨 Troubleshooting
 
@@ -252,7 +282,6 @@ Download the correct executable for your platform from [Releases](https://github
 ### Dependency Issues
 ```bash
 ./dotfiles check-deps          # Check what's missing
-./dotfiles check-deps --auto-install  # Auto-install missing deps
 ```
 
 ## 📚 Additional Resources
@@ -260,7 +289,7 @@ Download the correct executable for your platform from [Releases](https://github
 - [INSTALL.md](INSTALL.md) - Detailed installation guide
 - [QUICK-START.md](QUICK-START.md) - Quick start for new computers
 - [BUILD.md](BUILD.md) - Build instructions
-- [REFACTOR-SUMMARY.md](REFACTOR-SUMMARY.md) - Architecture details
+- [CLAUDE.md](CLAUDE.md) - Architecture details for Claude Code
 
 ## 🔧 Building from Source
 
@@ -287,8 +316,7 @@ MIT License - See LICENSE file for details
 
 ## 🙏 Acknowledgments
 
-Built with inspiration from:
-- [Oh My Zsh](https://github.com/ohmyzsh/ohmyzsh)
-- [Powerlevel10k](https://github.com/romkatv/powerlevel10k)
-- [dotbot](https://github.com/anishathalye/dotbot)
-- The amazing developer tool community
+Built with inspiration from the amazing developer tool community:
+- [Starship](https://starship.rs/) - Fast, minimal prompt
+- [Modern Unix](https://github.com/ibraheemdev/modern-unix) - Modern CLI tools
+- [Dotfiles community](https://dotfiles.github.io/) - Best practices
