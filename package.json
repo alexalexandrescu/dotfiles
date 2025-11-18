@@ -1,29 +1,16 @@
 {
   "name": "dotfiles",
-  "version": "2.0.0",
-  "description": "TypeScript-based dotfiles management CLI",
+  "version": "0.0.0",
+  "description": "Bun + TypeScript scaffold",
   "type": "module",
   "scripts": {
-    "build": "bun run build:mac && bun run build:ubuntu",
-    "build:mac": "mkdir -p dist/mac dist/mac-arm && bun build --compile --minify src/cli.ts --outfile dist/mac/dotfiles && bun build --compile --minify src/cli.ts --outfile dist/mac-arm/dotfiles && cp config.json dist/mac/ && cp config.json dist/mac-arm/",
-    "build:ubuntu": "mkdir -p dist/ubuntu dist/ubuntu-arm && bun build --compile --minify src/cli.ts --outfile dist/ubuntu/dotfiles && bun build --compile --minify src/cli.ts --outfile dist/ubuntu-arm/dotfiles && cp config.json dist/ubuntu/ && cp config.json dist/ubuntu-arm/",
-    "build:local": "mkdir -p dist && bun build --compile --minify src/cli.ts --outfile dist/dotfiles && cp config.json dist/",
-    "dev": "bun run src/cli.ts",
-    "test": "bun test",
+    "dev": "bun run src/index.ts",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "commander": "^14.0.2",
-    "zod": "^3.25.76",
-    "chalk": "^5.3.0",
-    "@inquirer/prompts": "^7.8.6"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^24.9.2",
     "typescript": "^5.9.2"
-  },
-  "bin": {
-    "dotfiles": "./dist/dotfiles"
   }
 }
 
