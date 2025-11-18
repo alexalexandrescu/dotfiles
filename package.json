@@ -1,0 +1,17 @@
+{
+  "name": "dotfiles",
+  "version": "0.0.0",
+  "description": "Bun + TypeScript scaffold",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^24.9.2",
+    "typescript": "^5.9.2"
+  }
+}
+
+
